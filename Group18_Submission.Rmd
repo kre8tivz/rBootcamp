@@ -44,8 +44,22 @@ blabla
 ## Data Inspection
 
 
+## Frequencies
+
+
+## Density Map: Identifiying the most and least popular Districts
+
 
 ## Influence of Meteorological Factors
+
+
+### Influence of average Temperature
+
+
+### Influence of Precipitation
+
+
+### Influence of Snowfall and Snow Depth
 
 
 
