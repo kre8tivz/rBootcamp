@@ -1,5 +1,5 @@
 ---
-title: "Group18 - R Bootcamp"
+title: "Group 18 - R Bootcamp"
 author: "Noel Rinke, Yanik Baumann"
 date: \today
 output: pdf_document
@@ -13,20 +13,41 @@ knitr::opts_chunk$set(echo = TRUE)
 
 blabla
 
+## Background Information on Bike Sharing Schemes
+
 ## Aim of the Analysis
 
 ## Datasets used
 
-```{r cars}
-summary(cars)
+# Installation of Packages
+
+```{r packages, echo=FALSE}
+
 ```
 
-## Including Plots
+# Data Prepartion
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Data Import
+
+
+
+## Merging the Datasets
+
+
+
+# Data Analysis
+
+
+
+## Data Inspection
+
+
+
+## Influence of Meteorological Factors
+
+
+
+
+
