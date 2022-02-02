@@ -2,28 +2,44 @@
 title: "Group 18 - R Bootcamp"
 author: "Noel Rinke, Yanik Baumann"
 date: \today
-output: pdf_document
+output: 
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    includes:
+      in_header: "wrap-code.tex"
+bibliography: Sources.bib
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 # Introduction
 
 Noel Rinke and Yanik Baumann are two students at the Lucerne University of Applied Sciences and Arts studying for a Master's degree in Applied Information and Data Science. Our assignment represents a complete data analysis where we use a wide variety of R functionalities. For this analysis, we use data from Citibike New York. 
 
-## Background Information on Bike Sharing Schemes
+## Background Information on New York's Bike-Sharing Scheme (work-in-progress)
 
-blabla
+As the New York Times [-@Hu2021] reported "*traffic has come roaring back in New York City after largely disappearing at the height of the corona virus pandemic*". While cars contribute to traffic congestion, greenhouse gas emissions and global warming, bicycles offer an environmentally friendlier, healthier, more economical and less space-consuming transportation alternative. Due to these benefits, bike-sharing schemes are increasingly promoted and expanded in urban areas such as the bike-sharing service Citibike provided by the company Lyft. 
+
 
 ## Aim of the Analysis
 
+blabla
+
 ## Datasets used
+
+blabla
 
 # Installation of Packages
 
-```{r packages, echo=FALSE}
+```{r packages, echo=TRUE}
+
+x <- 'This is a very very very very very very very very very very very very very very very very very very very very very very very very long text'
+
 
 ```
 
@@ -33,6 +49,11 @@ blabla
 
 ## Data Import
 
+```{Data import, echo=TRUE, tidy=TRUE}
+
+rides_jan <- read.csv(file = 'C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv')
+
+```
 
 
 ## Merging the Datasets
@@ -55,7 +76,7 @@ blabla
 ## Influence of Meteorological Factors
 
 
-### Influence of average Temperature
+### Influence of Temperature
 
 
 ### Influence of Precipitation
@@ -64,6 +85,6 @@ blabla
 ### Influence of Snowfall and Snow Depth
 
 
-
+# Sources
 
 
