@@ -54,17 +54,22 @@ bla
 
 ## Data Import
 
-```{Data import, echo=TRUE, tidy=TRUE}
+```{r Data import, echo=TRUE, tidy=TRUE}
 
-# citibike_jan <- read.csv(file = 'C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv')
+# citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz', 
+#                                             '\\R Bootcamp\\Data\\201904-citibike-tripdata.csv'))
+#  
+# citibike_apr19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
+#                                             '\\R Bootcamp\\Data\\201904-citibike-tripdata.csv')
 # 
-# citibike_apr <- read.csv(file = 'C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz\\R Bootcamp\\Data\\201904-citibike-tripdata.csv')
+# citibike_jul19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
+#                                             '\\R Bootcamp\\Data\\201907-citibike-tripdata.csv')
 # 
-# citibike_jul <- read.csv(file = 'C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz\\R Bootcamp\\Data\\201907-citibike-tripdata.csv')
+# citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
+#                                             '\\R Bootcamp\\Data\\201910-citibike-tripdata.csv')
 # 
-# citibike_oct <- read.csv(file = 'C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz\\R Bootcamp\\Data\\201910-citibike-tripdata.csv')
-
-# weather_2019 <- read.csv(file = 'C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv')
+# nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
+#                                               '\\R Bootcamp\\Data\\New York Weather 2019.csv')
 
 ```
 
