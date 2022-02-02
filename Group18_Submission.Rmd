@@ -57,7 +57,7 @@ bla
 ```{r Data import, echo=TRUE, tidy=TRUE}
 
 citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
-'\\R Bootcamp\\Data\\201904-citibike-tripdata.csv'))
+'\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
 
 citibike_apr19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
 '\\R Bootcamp\\Data\\201904-citibike-tripdata.csv'))
@@ -85,6 +85,12 @@ citibike_oct19_sample <- sample_n(citibike_oct19, size=1000)
 
 
 ## Merging the Datasets
+
+```{r dataset merge}
+
+
+
+```
 
 
 
