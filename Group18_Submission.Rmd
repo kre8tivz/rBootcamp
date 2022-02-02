@@ -36,14 +36,14 @@ The subsequent analysis required two different datasets: ride-sharing data and w
 
 The data with records on the bicycle rides was obtained from citibike, a bike-sharing service operating in New York City. To represent each season, four different data sets were downloaded for January, April, July, and December, and an equal sample size was drawn from each month in the subsequent data preparation section. In addition, it is important to note that the Covid 19 pandemic was thought to be a potential confounding factor, so we specifically chose to use data from 2019, which predated the pandemic.
 
-The second dataset used stems from the National Oceanic and Atmospheric Administration which is part of the U.S. Department of Commerce. The dataset includes weather data measured at the Laguardia Airport in New York with station number GHCND:USW00014732.
+The second dataset used stems from the National Oceanic and Atmospheric Administration which is part of the U.S. Department of Commerce. The dataset includes weather data measured at the Laguardia Airport in New York which corresponds to the weather station with the number GHCND:USW00014732.
 
 
 # Installation of Packages
 
-```{r packages, echo=TRUE}
+```{r packages, echo=TRUE, warning=FALSE}
 
-x <- 'This is a very very very very very very very very very very very very very very very very very very very very very very very very long text'
+library(dplyr)
 
 
 ```
@@ -54,28 +54,31 @@ bla
 
 ## Data Import
 
-```{r Data import, echo=TRUE, tidy=TRUE}
+```{r Data import, echo=TRUE, eval=FALSE, tidy=TRUE}
 
-citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
-'\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
+citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+'\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
 
-citibike_apr19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
-'\\R Bootcamp\\Data\\201904-citibike-tripdata.csv'))
+citibike_apr19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+'\\SharedOstSchweiz\\R Bootcamp\\Data\\201904-citibike-tripdata.csv'))
 
-citibike_jul19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
-'\\R Bootcamp\\Data\\201907-citibike-tripdata.csv'))
+citibike_jul19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+'\\SharedOstSchweiz\\R Bootcamp\\Data\\201907-citibike-tripdata.csv'))
 
-citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
-'\\R Bootcamp\\Data\\201910-citibike-tripdata.csv'))
+citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+'\\SharedOstSchweiz\\R Bootcamp\\Data\\201910-citibike-tripdata.csv'))
 
-nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive\\SharedOstSchweiz',
-'\\R Bootcamp\\Data\\New York Weather 2019.csv'))
+nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+'\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv'))
 
 
 
 ```
 
-```{r sample}
+## Taking Samples
+
+```{r sample, echo=TRUE, eval=FALSE,}
+
 citibike_jan19_sample <- sample_n(citibike_jan19, size=1000)
 citibike_apr19_sample <- sample_n(citibike_apr19, size=1000)
 citibike_jul19_sample <- sample_n(citibike_jul19, size=1000)
@@ -86,13 +89,17 @@ citibike_oct19_sample <- sample_n(citibike_oct19, size=1000)
 
 ## Merging the Datasets
 
-```{r dataset merge}
+```{r dataset merge, echo=TRUE, eval=FALSE,}
 
-
+citibike_merged_2019 <- rbind(citibike_jan19_sample, citibike_apr19_sample, citibike_jul19_sample, citibike_oct19_sample)
 
 ```
 
+```{r create csv with combined samples, echo=TRUE, eval=FALSE,}
 
+write.csv(citibike_merged_2019, 'citibike_merged_2019.csv')
+
+```
 
 
 
