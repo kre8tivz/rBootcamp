@@ -37,6 +37,15 @@ head(citibike_apr19_sample)
 head(citibike_jul19_sample)
 head(citibike_oct19_sample)
 
+##############################
+# Factor loading
+##############################
+
+citibike_jan19_sample <- cbind(citibike_jan19_sample, season='winter')
+citibike_apr19_sample <- cbind(citibike_apr19_sample, season='spring')
+citibike_jul19_sample <- cbind(citibike_jul19_sample, season='summer')
+citibike_oct19_sample <- cbind(citibike_oct19_sample, season='autumn')
+
 
 ##############################
 # Dataframe merging
@@ -53,6 +62,6 @@ nrow(citibike_merged)
 # Write the csv
 ##############################
 
-write.csv(citibike_merged, sep = ',', file = "citibike_merged_2019")
+write.csv(citibike_merged, sep = ',', file = "citibike_merged_2019.csv")
 
 
