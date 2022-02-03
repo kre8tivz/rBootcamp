@@ -58,10 +58,23 @@ citibike_merged <- rbind(citibike_jan19_sample, citibike_apr19_sample,
 View(citibike_merged)
 nrow(citibike_merged)
 
+#############################
+# Weather Data cleaning
+#############################
+
+nyc_weather_cleaned <- subset(nyc_weather_2019, select = -c(TSUN, TAVG, AWND))
+nrow(nyc_weather_cleaned)
+
+#############################
+# Join nyc_weather_cleaned & citibike_merged
+#############################
+
+
+
+
+
 ##############################
 # Write the csv
 ##############################
 
 write.csv(citibike_merged, sep = ',', file = "citibike_merged_2019.csv")
-
-
