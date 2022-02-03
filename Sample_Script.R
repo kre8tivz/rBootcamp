@@ -70,7 +70,7 @@ nrow(nyc_weather_cleaned)
 #############################
 
 
-
+citibike_weather_combined <- left_join(citibike_merged_2019, nyc_weather_cleaned, by=c("Date","DATE"))
 
 
 ##############################
