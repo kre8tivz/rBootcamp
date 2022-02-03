@@ -93,10 +93,11 @@ citibike_weather_combined$meantemp <- (citibike_weather_combined$TMAX + citibike
 # Grouping rain intensity
 ##############################
 
-citibike_weather_combined$raingrouped <- ifelse(citibike_weather_combined$PRCP <=2.0, 'less',
+citibike_weather_combined$raingrouped <- ifelse(citibike_weather_combined$PRCP <=2.0, 'weak',
                                          ifelse(citibike_weather_combined$PRCP >2.0 & citibike_weather_combined$PRCP <=10.0, 'moderate',
-                                         ifelse(citibike_weather_combined$PRCP >10.0 & citibike_weather_combined$PRCP <=30.0, 'heavy', 'intens')))
+                                         ifelse(citibike_weather_combined$PRCP >10.0 & citibike_weather_combined$PRCP <=30.0, 'heavy', 'intense')))
 
+citibike_weather_combined$Snow_yesno <- ifelse(citibike_weather_combined$SNOW > 0, 'yes', 'no')
 
 ##############################
 # Write the csv
