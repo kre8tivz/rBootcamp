@@ -22,6 +22,8 @@ nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive\\Sh
 ##############################
 
 library(dplyr)
+library(stringr)
+library(tidyr)
 
 citibike_jan19_sample <- sample_n(citibike_jan19, size=1000)
 citibike_apr19_sample <- sample_n(citibike_apr19, size=1000)
@@ -64,6 +66,13 @@ nrow(citibike_merged)
 
 nyc_weather_cleaned <- subset(nyc_weather_2019, select = -c(TSUN, TAVG, AWND))
 nrow(nyc_weather_cleaned)
+
+#############################
+# Add Date column
+#############################
+
+citibike_merged$Date <- substr(citibike_merged$starttime, 1, 10)
+
 
 #############################
 # Join nyc_weather_cleaned & citibike_merged
