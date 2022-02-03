@@ -90,4 +90,4 @@ View(citibike_weather_combined)
 # Write the csv
 ##############################
 
-write.csv(citibike_merged, sep = ',', file = "citibike_weather_2019.csv")
+write.csv(citibike_weather_combined, sep = ',', file = "citibike_weather_2019.csv")
