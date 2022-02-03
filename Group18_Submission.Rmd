@@ -36,7 +36,7 @@ The subsequent analysis required two different datasets: ride-sharing data and w
 
 The data with records on the bicycle rides was obtained from citibike, a bike-sharing service operating in New York City. To represent each season, four different data sets were downloaded for January, April, July, and December, and an equal sample size was drawn from each month in the data preparation section. In addition, it is important to note that the Covid 19 pandemic was thought to be a potential confounding factor, so we specifically chose to use data from 2019, which predated the pandemic.
 
-The second dataset used stems from the National Oceanic and Atmospheric Administration which is part of the U.S. Department of Commerce. The dataset includes weather data measured at the Laguardia Airport in New York which corresponds to the weather station with the number GHCND:USW00014732.
+The second dataset used stems from the National Oceanic and Atmospheric Administration which is part of the U.S. Department of Commerce. The dataset includes weather data measured at the Central Park in New York which corresponds to the weather station with the number GHCND:USW00094728.
 
 
 # Installation of Packages
