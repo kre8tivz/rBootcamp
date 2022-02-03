@@ -17,6 +17,22 @@ citibike_oct19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive\\Shar
 nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive\\SharedOstSchweiz',
                                               '\\R Bootcamp\\Data\\New York Weather 2019.csv'))
 
+# citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+#                                             '\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
+# 
+# citibike_apr19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+#                                             '\\SharedOstSchweiz\\R Bootcamp\\Data\\201904-citibike-tripdata.csv'))
+# 
+# citibike_jul19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+#                                             '\\SharedOstSchweiz\\R Bootcamp\\Data\\201907-citibike-tripdata.csv'))
+# 
+# citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+#                                             '\\SharedOstSchweiz\\R Bootcamp\\Data\\201910-citibike-tripdata.csv'))
+# 
+# nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+#                                               '\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv'))
+
+
 ##############################
 # Sampleing the Dataframes
 ##############################
@@ -86,8 +102,13 @@ citibike_weather_combined <- left_join(citibike_merged, nyc_weather_cleaned,
                                        by='DATE')
 View(citibike_weather_combined)
 
+
 ##############################
 # Write the csv
 ##############################
 
 write.csv(citibike_weather_combined, sep = ',', file = "citibike_weather_2019.csv")
+
+
+
+

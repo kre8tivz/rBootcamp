@@ -8,3 +8,5 @@ a <- 12
 b <- 5
 c <- 10
 
+test <- read.csv('citibike_weather_2019.csv')
+View(test)
