@@ -71,19 +71,23 @@ nrow(nyc_weather_cleaned)
 # Add Date column
 #############################
 
-citibike_merged$Date <- substr(citibike_merged$starttime, 1, 10)
+citibike_merged$DATE <- substr(citibike_merged$starttime, 1, 10)
 
 
 #############################
 # Join nyc_weather_cleaned & citibike_merged
 #############################
 
+head(nyc_weather_cleaned)
+class(nyc_weather_cleaned$DATE)
+class(citibike_merged$Date)
 
-citibike_weather_combined <- left_join(citibike_merged_2019, nyc_weather_cleaned, by=c("Date","DATE"))
-
+citibike_weather_combined <- left_join(citibike_merged, nyc_weather_cleaned, 
+                                       by='DATE')
+View(citibike_weather_combined)
 
 ##############################
 # Write the csv
 ##############################
 
-write.csv(citibike_merged, sep = ',', file = "citibike_merged_2019.csv")
+write.csv(citibike_merged, sep = ',', file = "citibike_weather_2019.csv")
