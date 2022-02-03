@@ -94,13 +94,26 @@ citibike_merged$DATE <- substr(citibike_merged$starttime, 1, 10)
 # Join nyc_weather_cleaned & citibike_merged
 #############################
 
-head(nyc_weather_cleaned)
-class(nyc_weather_cleaned$DATE)
-class(citibike_merged$Date)
 
 citibike_weather_combined <- left_join(citibike_merged, nyc_weather_cleaned, 
                                        by='DATE')
-View(citibike_weather_combined)
+
+##############################
+# Calculate average temperature
+##############################
+
+
+citibike_weather_combined$meantemp <- (citibike_weather_combined$TMAX + citibike_weather_combined$TMIN) / 2
+
+##############################
+# Grouping rain intensity
+##############################
+
+citibike_weather_combined$raingrouped <- ifelse(citibike_weather_combined$PRCP <=2.0, 'weak',
+                                         ifelse(citibike_weather_combined$PRCP >2.0 & citibike_weather_combined$PRCP <=10.0, 'moderate',
+                                         ifelse(citibike_weather_combined$PRCP >10.0 & citibike_weather_combined$PRCP <=30.0, 'heavy', 'intense')))
+
+citibike_weather_combined$Snow_yesno <- ifelse(citibike_weather_combined$SNOW > 0, 'yes', 'no')
 
 
 ##############################
