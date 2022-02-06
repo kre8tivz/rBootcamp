@@ -7,6 +7,11 @@
 #    http://shiny.rstudio.com/
 #
 
+########################################
+# To improve: Rides start only at stations. Markers on map overlap:
+# Possible solution: https://github.com/jawj/OverlappingMarkerSpiderfier-Leaflet
+
+
 library(shiny)
 library(leaflet)
 library(dplyr)
@@ -46,10 +51,18 @@ server <- function(input, output) {
     # pal <- colorFactor(pal = c("#33BEFF", "#7AFF33", "#FF5733", "#FFDD33"), domain = c("winter", "spring", "summer", "autumn"))
     pal <- colorFactor(pal = c("#DAECE4", "#BEECD8", "#89E7BE", "#53E8A7", "#0BEA89"), domain = c("0 to 5 min", "5 to 15 min", "15 to 30 min", "30 to 60 min", "over 60 min"))
     
-    # Here we add a new column to the DF
+    # Here we add a new column with the info which pops up when the markers are clicked to the DF
     # paste0() concatenates the strings
     citibike_weather_df <- mutate(citibike_weather_df, content=paste0('<strong>Trip duration: </strong>',tripduration,
-                                                                      '<br><strong>Start station',start.station.name))
+                                                                      '<br><strong>Start time: </strong>',starttime,
+                                                                      '<br><strong>Stop time: </strong>',stoptime,                                                                      
+                                                                      '<br><strong>Start station: </strong>',start.station.name,
+                                                                      '<br><strong>End station: </strong>',end.station.name,
+                                                                      '<br><strong>Start station lat & long: </strong>',start.station.latitude,", ",start.station.longitude,
+                                                                      '<br><strong>End station lat & long: </strong>',end.station.latitude,", ",end.station.longitude,
+                                                                      '<br><strong>Birth year: </strong>',birth.year,
+                                                                      '<br><strong>Avg temperature (°C): </strong>',meantemp
+                                                                      ))
     # Create the map for the navbar
     output$citibikemap <- renderLeaflet({
         leaflet(citibike_weather_df) %>%
