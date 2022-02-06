@@ -11,7 +11,7 @@ library(shiny)
 library(leaflet)
 library(dplyr)
 library(DT)
-
+library(sf)
 
 setwd("..")
 
@@ -37,6 +37,10 @@ server <- function(input, output) {
                                             ifelse(citibike_weather_df$tripduration >900 & citibike_weather_df$tripduration <=1800, '15 to 30 min',
                                             ifelse(citibike_weather_df$tripduration >1800 & citibike_weather_df$tripduration <=3600, '30 to 60 min','over 60 min'))))
     
+    nyc_bike_lanes <- read_sf("C:/Users/noelr/OneDrive/Documents/rBootcamp/citibike_vis/NYC_BICYCLE_NETWORK_19D_20210311.shp")
+    # https://community.rstudio.com/t/projection-problems-with-leaflet/27747
+    nyc_bike_lanes_transformed <- st_transform(nyc_bike_lanes, 4326)
+    
     
     # Create color palette for category type
     # pal <- colorFactor(pal = c("#33BEFF", "#7AFF33", "#FF5733", "#FFDD33"), domain = c("winter", "spring", "summer", "autumn"))
@@ -48,7 +52,11 @@ server <- function(input, output) {
                                                                       '<br><strong>Start station',start.station.name))
     # Create the map for the navbar
     output$citibikemap <- renderLeaflet({
-        leaflet(citibike_weather_df) %>% 
+        leaflet(citibike_weather_df) %>%
+            addPolygons(data = nyc_bike_lanes_transformed, # Add bike lanes to map
+                        color = "blue", 
+                        fill = NA, 
+                        weight = 1.1) %>% 
             addCircles(lng = citibike_weather_df$start.station.longitude, lat = citibike_weather_df$start.station.latitude) %>%
             addTiles()%>%
             addCircleMarkers(data = citibike_weather_df, lng = citibike_weather_df$start.station.longitude, lat = citibike_weather_df$start.station.latitude,
