@@ -8,11 +8,11 @@ rm(list = ls())
 #####################################
 require(tidyr)
 require(ggplot2)
-library(ggthemes)
-library(dplyr)
-library(scales)
-library(knitr)
-library(lubridate)
+require(ggthemes)
+require(dplyr)
+require(scales)
+require(knitr)
+require(lubridate)
 require(ggmap)
 
 #####################################
@@ -30,8 +30,9 @@ citibike_weather_df <- read.csv('citibike_weather_2019.csv')
 citibike_weather_df$weekday <- weekdays(as.Date(citibike_weather_df$DATE))
 
 # Histogram
-ggplot(data.frame(citibike_weather_df$weekday), aes(x=citibike_weather_df$weekday)) +
-  geom_bar()
+ggplot(data.frame(citibike_weather_df$weekday), aes(x=citibike_weather_df$weekday, fill=factor(citibike_weather_df$weekday))) +
+  geom_bar(alpha=.8) +
+  theme(legend.position="none")
 
 #####################################
 # time period with most trips
