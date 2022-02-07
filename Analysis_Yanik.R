@@ -8,6 +8,12 @@ rm(list = ls())
 #####################################
 require(tidyr)
 require(ggplot2)
+library(ggthemes)
+library(dplyr)
+library(scales)
+library(knitr)
+library(lubridate)
+require(ggmap)
 
 #####################################
 # Read CSV
@@ -31,4 +37,34 @@ ggplot(data.frame(citibike_weather_df$weekday), aes(x=citibike_weather_df$weekda
 # time period with most trips
 #####################################
 
+citibike_weather_df$onlytime <- as.POSIXct(substr(citibike_weather_df$starttime, 12, 19), format="%H:%M:%S")
+citibike_weather_df$time <- strftime(citibike_weather_df$onlytime,format="%H:%M")
+citibike_weather_df$hour <- as.numeric(substr(citibike_weather_df$time,1,2))
 
+citibike_weather_df$daytime <- ifelse(citibike_weather_df$onlytime <= as.POSIXct("06:00:00",format="%H:%M:%S"), 'night',
+                               ifelse(citibike_weather_df$onlytime > as.POSIXct("06:00:00",format="%H:%M:%S") & citibike_weather_df$onlytime <= as.POSIXct("12:00:00",format="%H:%M:%S"), 'morning',
+                               ifelse(citibike_weather_df$onlytime > as.POSIXct("12:00:00",format="%H:%M:%S") & citibike_weather_df$onlytime <= as.POSIXct("18:00:00",format="%H:%M:%S"), 'afternoon', 
+                               ifelse(citibike_weather_df$onlytime > as.POSIXct("18:00:00",format="%H:%M:%S") & citibike_weather_df$onlytime <= as.POSIXct("24:00:00",format="%H:%M:%S"), 'evening', 'night'))))
+# Histogram
+ggplot(data.frame(citibike_weather_df$daytime), aes(x=citibike_weather_df$daytime)) +
+  geom_bar()
+
+#Hourly Distribution of Rides
+
+citibike_weather_df %>% ggplot(aes(x=hour,fill=factor(weekday))) + 
+  geom_density(alpha=.2)+facet_wrap(~weekday,ncol=1)+theme_fivethirtyeight()+
+  theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) + 
+  ggtitle(expression(atop("Hourly Distribution of Rides",atop("Weekday Peaks during Morning Rush (8am-9am) and Afternoon Rush (5pm-6pm)"))))
+
+
+##########################################################################
+# Influence of average temperature per day on the number of rides per day
+##########################################################################
+
+ggplot(aes(x=meantemp,y=tripduration),data=citibike_weather_df)+
+  geom_point() +
+  scale_y_continuous(labels = scales::comma)
+
+
+View(citibike_weather_df)
+max(citibike_weather_df$tripduration)
