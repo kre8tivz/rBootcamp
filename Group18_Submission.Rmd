@@ -9,6 +9,7 @@ output:
     number_sections: true
     includes:
       in_header: "wrap-code.tex"
+biblio-style: apa
 bibliography: Sources.bib
 ---
 
@@ -23,7 +24,10 @@ Noel Rinke and Yanik Baumann are two students at the Lucerne University of Appli
 
 ## Background Information on New York's Bike-Sharing Scheme (work-in-progress)
 
-As the New York Times [-@Hu2021] reported "*traffic has come roaring back in New York City after largely disappearing at the height of the corona virus pandemic*". While cars contribute to traffic congestion, greenhouse gas emissions and global warming, bicycles offer an environmentally friendlier, healthier, more economical and less space-consuming transportation alternative. Due to these benefits, bike-sharing schemes are increasingly promoted and expanded in urban areas such as the bike-sharing service Citibike in New York City provided by the company Lyft. 
+The bike sharing system Citi Bike began operating in New York City in 2013 [@LyftInc22]. With 19000 bikes and more than 1000 stations (as of 2022), Citi Bike is the largest bike-sharing system in the United States, making it an integral part of New York City's transport network [@LyftInc22]. The bike-sharing scheme consists of a fleet of specifically engineered, long-lasting bicycles that are connected to a network of stations which span with Manhattan, Brooklyn, Queens the Bronx and Jersey City all five boroughs of New York City. Citi Bike provides an app which allows its customers to unlock bikes, see real-time station information, and personalized data such as kilometers traveled and calories burnt.
+
+As the New York Times [-@Hu2021] reported "*traffic has come roaring back in New York City after largely disappearing at the height of the corona virus pandemic*". While cars contribute to traffic congestion, greenhouse gas emissions and global warming, bicycles offer an environmentally friendlier, healthier, more economical and less space-consuming transportation alternative.
+
 
 ## Aim of the Analysis
 
@@ -32,11 +36,11 @@ blabla
 
 ## Datasets used
 
-The subsequent analysis required two different datasets: ride-sharing data and weather data.
+The subsequent analysis required two different datasets: Citi Bike ride-sharing data and weather data.
 
-The data with records on the bicycle rides was obtained from citibike, a bike-sharing service operating in New York City. To represent each season, four different data sets were downloaded for January, April, July, and December, and an equal sample size was drawn from each month in the data preparation section. In addition, it is important to note that the Covid 19 pandemic was thought to be a potential confounding factor, so we specifically chose to use data from 2019, which predated the pandemic.
+As mentioned above, the data with records on the bicycle rides was obtained from Citi Bike which provides all datasets since the service began operating in 2013. To represent each season, four different data sets were downloaded for January, April, July, and December, and an equal sample size was drawn from each month in the data preparation section. In addition, it is important to note that the Covid 19 pandemic was thought to be a potential confounding factor, so we specifically chose to use data from 2019, which predated the pandemic.
 
-The second dataset used stems from the National Oceanic and Atmospheric Administration which is part of the U.S. Department of Commerce. The dataset includes weather data measured at the Central Park in New York which corresponds to the weather station with the number GHCND:USW00094728.
+The second dataset used stems from the National Oceanic and Atmospheric Administration which is part of the U.S. Department of Commerce. The dataset includes weather data measured at the weather station with the number GHCND:USW00094728 which corresponds to New York City's Central Park.
 
 
 # Installation of Packages
