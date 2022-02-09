@@ -60,21 +60,27 @@ server <- function(input, output) {
     # Create the map for the navbar
     output$citibikemap <- renderLeaflet({
         leaflet(citibike_weather_df) %>%
+            addTiles() %>%
             addPolygons(data = nyc_bike_lanes_transformed, # Add bike lanes to map
-                        color = "blue", 
+                        color = "#2c7fb8", 
                         fill = NA, 
-                        weight = 1.1) %>% 
-            addCircles(lng = citibike_weather_df$start.station.longitude, lat = citibike_weather_df$start.station.latitude) %>%
-            addTiles()%>%
-            addCircleMarkers(data = citibike_weather_df, lng = citibike_weather_df$start.station.longitude, lat = citibike_weather_df$start.station.latitude,
-                             radius = 3, popup = ~as.character(citibike_weather_df$content),
+                        weight = 1.5) %>% 
+            addCircles(lng = citibike_weather_df$start.station.longitude, 
+                       lat = citibike_weather_df$start.station.latitude,
+                       color = "#8dd3c7") %>%
+            addCircleMarkers(lng = citibike_weather_df$start.station.longitude, lat = citibike_weather_df$start.station.latitude,
+                             radius = 3, 
+                             popup = ~as.character(citibike_weather_df$content),
     #                        color = ~pal(tripduration_cat),
-                             stroke = FALSE, fillOpacity = 0.8,
+                             stroke = FALSE, 
+                             fillOpacity = 0.1,
                              clusterOptions = markerClusterOptions()) %>%
     #       addLegend(pal=pal, values=citibike_weather_df$tripduration_cat, opacity=1, na.label="Not Available") %>%
-            addProviderTiles("CartoDB.Positron") %>%
+            addProviderTiles("CartoDB.Voyager") %>%
+            clearBounds() %>% 
             addEasyButton(easyButton(
-                icon="fa-crosshairs", title="ME",
+                icon="fa-crosshairs", 
+                title="ME",
                 onClick=JS("function(btn, map){ map.locate({setView: true}); }")))
     })
     
