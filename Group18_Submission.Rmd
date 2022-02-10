@@ -151,9 +151,10 @@ citi_cb$meantemp <- (citi_cb$TMAX + citi_cb$TMIN) / 2
 
 ## Grouping rain intensity
 ```{r grouping rain intensity, echo=TRUE, eval=FALSE,}
-citi_cb$raingrouped <- ifelse(citi_cb$PRCP <=2.0, 'weak',
+citi_cb$raingrouped <- ifelse(citi_cb$PRCP == 0, 'no rain',
+                       ifelse(citi_cb$PRCP > 0   & citi_cb$PRCP <=2.0, 'weak',
                        ifelse(citi_cb$PRCP >2.0  & citi_cb$PRCP <=10.0, 'moderate',
-                       ifelse(citi_cb$PRCP >10.0 & citi_cb$PRCP <=30.0, 'heavy', 'intense')))
+                       ifelse(citi_cb$PRCP >10.0 & citi_cb$PRCP <=30.0, 'heavy', 'intense'))))
 ```
 
 ## Snow Yes/No
@@ -185,13 +186,16 @@ citi_cb$time     <- strftime(citi_cb$onlytime,format="%H:%M")
 citi_cb$hour     <- as.numeric(substr(citi_cb$time,1,2))
 
 # Set Daytime
-citi_cb$daytime  <- ifelse(citibike_weather_df$onlytime <= as.POSIXct("06:00:00",format="%H:%M:%S"), 'night',
+citi_cb$daytime  <- ifelse(citi_cb$onlytime <= as.POSIXct("06:00:00",format="%H:%M:%S"), 'night',
                     ifelse(citi_cb$onlytime > as.POSIXct("06:00:00",format="%H:%M:%S") & 
                     citi_cb$onlytime <= as.POSIXct("12:00:00",format="%H:%M:%S"), 'morning',
                     ifelse(citi_cb$onlytime > as.POSIXct("12:00:00",format="%H:%M:%S") & 
                     citi_cb$onlytime <= as.POSIXct("18:00:00",format="%H:%M:%S"), 'afternoon', 
                     ifelse(citi_cb$onlytime > as.POSIXct("18:00:00",format="%H:%M:%S") & 
                     citi_cb$onlytime <= as.POSIXct("24:00:00",format="%H:%M:%S"), 'evening', 'night'))))
+
+# Setting correct factor order
+citi_cb$daytime <- factor(citi_cb$daytime,levels = c("morning","afternoon","evening","night"))
 ```
 
 ## Setting trip duration groups

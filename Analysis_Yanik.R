@@ -49,6 +49,9 @@ citibike_weather_df$daytime <- ifelse(citibike_weather_df$onlytime <= as.POSIXct
                                ifelse(citibike_weather_df$onlytime > as.POSIXct("06:00:00",format="%H:%M:%S") & citibike_weather_df$onlytime <= as.POSIXct("12:00:00",format="%H:%M:%S"), 'morning',
                                ifelse(citibike_weather_df$onlytime > as.POSIXct("12:00:00",format="%H:%M:%S") & citibike_weather_df$onlytime <= as.POSIXct("18:00:00",format="%H:%M:%S"), 'afternoon', 
                                ifelse(citibike_weather_df$onlytime > as.POSIXct("18:00:00",format="%H:%M:%S") & citibike_weather_df$onlytime <= as.POSIXct("24:00:00",format="%H:%M:%S"), 'evening', 'night'))))
+
+citibike_weather_df$daytime <- factor(citibike_weather_df$daytime,levels = c("morning","afternoon","evening","night"))
+
 # Histogram
 ggplot(data.frame(citibike_weather_df$daytime), aes(x=citibike_weather_df$daytime)) +
   geom_bar()
