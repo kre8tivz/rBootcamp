@@ -13,6 +13,7 @@ library(sf)
 library(dplyr)
 library(leaflet.extras)
 library(ggeasy)
+library(ggpubr)
 
 #####################################
 # Options
@@ -196,6 +197,7 @@ citibike_weather_df <- subset(citibike_weather_df, tripduration < 6000)
 # Check how the variables trip duration and average temperature are distributed
 hist(citibike_weather_df$tripduration)
 hist(citibike_weather_df$meantemp)
+hist(citibike_weather_df$PRCP)
 
 # Neither the variable trip duration nor the variable average temperature
 # are normally distributed and both are quantitative variables
@@ -212,16 +214,46 @@ hist(citibike_weather_df$meantemp)
 ggplot(citibike_weather_df, aes(x=meantemp, y=tripduration)) +
   geom_point(color='#2980B9') + 
   geom_smooth(method=lm, se=FALSE, fullrange=TRUE, color='#2C3E50') +
-  ggtitle(label="Effect of Average daily Temperature on Trip Durations") +
+  ggtitle(label="Effect of Average daily Temperature on Trip Duration") +
   ggeasy::easy_center_title() +
   xlab("Average daily temperature") +
   ylab("Trip duration (in seconds")
 
 cor(x=meantemp, y=tripduration, method="spearman")
 
-## How strong is the effect of daily average temperature on the number of trips?
+## How strong is the effect of precipitation on the number of trips?
 
+rain_cat_freq <- citibike_weather_df %>%
+  group_by(raingrouped) %>%
+  summarise(n = n()) %>%
+  mutate(Freq = n/sum(n))
+
+ggplot(citibike_weather_df, aes(x=raingrouped, y=counts)) +
+  geom_bar(fill = "#0073C2FF")
+
+rain_cat_freq
+
+hist(rain_cat_freq)
+
+rain_cat_freq <- citibike_weather_df %>%
+  group_by(raingrouped) %>%
+  summarise(counts = n())
+
+ggplot(rain_cat_freq, aes(x = raingrouped, y = counts)) +
+  geom_bar(fill = "#0073C2FF", 
+           stat = "identity") +
+  geom_text(aes(label = counts), 
+            vjust = -0.3) # Label above bar
 
 ## How strong is the effect of precipitation on the trip duration?
 
+ggplot(citibike_weather_df, aes(x=PRCP, y=tripduration)) +
+  geom_point(color='#2980B9') + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE, color='#2C3E50') +
+  ggtitle(label="Effect of Precipitation on Trip Duration") +
+  ggeasy::easy_center_title() +
+  xlab("Precipitation (in mm)") +
+  ylab("Trip duration (in seconds)")
 
+cor_tripduration_precipitation <- round(cor(x=citibike_weather_df$PRCP, y=citibike_weather_df$tripduration, method="spearman"),2)
+print(paste0("Interpretation: For every mm of precipitation, the time a customer rents a bike decreases by ", cor_tripduration_precipitation, " seconds."))
