@@ -46,13 +46,30 @@ The second dataset used stems from the National Oceanic and Atmospheric Administ
 # Installation of Packages
 
 ```{r packages, echo=TRUE, warning=FALSE}
-library(dplyr)
-
+require(maps)
+require(leaflet)
+require(skimr)
+require(DataExplorer)
+require(st)
+require(sf)
+require(leaflet.extras)
+require(ggeasy)
+require(tidyr)
+require(ggplot2)
+require(ggthemes)
+require(dplyr)
+require(scales)
+require(knitr)
+require(lubridate)
+require(ggmap)
+require(rgdal)
+require(httr)
+require(broom)
 ```
 
 # Data Preparation
 
-bla
+This chapter describes how to import and prepare the data sets.
 
 
 ## Data Import
@@ -89,26 +106,132 @@ citibike_oct19_sample <- sample_n(citibike_oct19, size=1000)
 
 ```
 
+## Adding Season to the data sets
 
-## Merging the Datasets
+```{r sample, echo=TRUE, eval=FALSE,}
+citibike_jan19_sample <- cbind(citibike_jan19_sample, season='winter')
+citibike_apr19_sample <- cbind(citibike_apr19_sample, season='spring')
+citibike_jul19_sample <- cbind(citibike_jul19_sample, season='summer')
+citibike_oct19_sample <- cbind(citibike_oct19_sample, season='autumn')
+
+```
+
+## Merging the Datasets from Citibike
 
 ```{r dataset merge, echo=TRUE, eval=FALSE,}
 citibike_merged_2019 <- rbind(citibike_jan19_sample, citibike_apr19_sample, citibike_jul19_sample, citibike_oct19_sample)
 
 ```
 
-```{r create csv with all created samples, echo=TRUE, eval=FALSE,}
-write.csv(citibike_merged_2019, 'citibike_merged_2019.csv')
+## Adding Date-column
+
+```{r add date column, echo=TRUE, eval=FALSE,}
+citibike_merged_2019$DATE <- substr(citibike_merged$starttime, 1, 10)
 
 ```
 
+## Cleaning the weather data set
+
+```{r cleaning weather data, echo=TRUE, eval=FALSE,}
+nyc_weather_cleaned <- subset(nyc_weather_2019, select = -c(TSUN, TAVG, AWND))
+
+```
+
+## Join citibike_merged_2019 and the nyc_weather_cleaned
+
+```{r leftjoin citibike and weather, echo=TRUE, eval=FALSE,}
+citi_cb <- left_join(citibike_merged, nyc_weather_cleaned, 
+                                       by='DATE')
+```
+
+## Calculate average temperature
+```{r calc avg temp, echo=TRUE, eval=FALSE,}
+citi_cb$meantemp <- (citi_cb$TMAX + citi_cb$TMIN) / 2
+```
+
+## Grouping rain intensity
+```{r grouping rain intensity, echo=TRUE, eval=FALSE,}
+citi_cb$raingrouped <- ifelse(citi_cb$PRCP <=2.0, 'weak',
+                       ifelse(citi_cb$PRCP >2.0  & citi_cb$PRCP <=10.0, 'moderate',
+                       ifelse(citi_cb$PRCP >10.0 & citi_cb$PRCP <=30.0, 'heavy', 'intense')))
+```
+
+## Snow Yes/No
+```{r snow yes/no, echo=TRUE, eval=FALSE,}
+citi_cb$Snow_yesno <- ifelse(citi_cb$SNOW > 0, 'yes', 'no')
+```
+
+## Getting the weekdays
+```{r getting the weekdays, echo=TRUE, eval=FALSE,}
+# Weekdays in english
+Sys.setlocale("LC_TIME", "English")
+
+# Define Weekday
+citi_cb$weekday <- weekdays(as.Date(citi_cb$DATE))
+
+# Setting correct factor order
+citi_cb$weekday <- factor(citi_cb$weekday,levels = c("Monday","Tuesday","Wednesday",
+                                                     "Thursday","Friday","Saturday","Sunday"))
+```
+
+## Getting Time and Daytimes
+```{r Getting Time and Daytimes, echo=TRUE, eval=FALSE,}
+citi_cb$onlytime <- as.POSIXct(substr(citi_cb$starttime, 12, 19), format="%H:%M:%S")
+
+# Only Hours and Minutes
+citi_cb$time     <- strftime(citi_cb$onlytime,format="%H:%M")
+
+# Only Hour
+citi_cb$hour     <- as.numeric(substr(citi_cb$time,1,2))
+
+# Set Daytime
+citi_cb$daytime  <- ifelse(citibike_weather_df$onlytime <= as.POSIXct("06:00:00",format="%H:%M:%S"), 'night',
+                    ifelse(citi_cb$onlytime > as.POSIXct("06:00:00",format="%H:%M:%S") & 
+                    citi_cb$onlytime <= as.POSIXct("12:00:00",format="%H:%M:%S"), 'morning',
+                    ifelse(citi_cb$onlytime > as.POSIXct("12:00:00",format="%H:%M:%S") & 
+                    citi_cb$onlytime <= as.POSIXct("18:00:00",format="%H:%M:%S"), 'afternoon', 
+                    ifelse(citi_cb$onlytime > as.POSIXct("18:00:00",format="%H:%M:%S") & 
+                    citi_cb$onlytime <= as.POSIXct("24:00:00",format="%H:%M:%S"), 'evening', 'night'))))
+```
+
+## Setting trip duration groups
+```{r grouping trip duration, echo=TRUE, eval=FALSE,}
+citi_cb$tripduration_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
+                            ifelse(citi_cb$tripduration >300 & citi_cb$tripduration <=900, '5 to 15 min',
+                            ifelse(citi_cb$tripduration >900 & citi_cb$tripduration <=1800, '15 to 30 min',
+                            ifelse(citi_cb$tripduration >1800 &
+                                   citi_cb$tripduration <=3600, '30 to 60 min','over 60 min'))))
+```
 
 # Analysis
 
 
 
 ## Data Inspection
+```{r data inspectation, echo=TRUE, eval=FALSE,}
+# First and last 5 observations
+head(citi_cb)
+tail(citi_cb)
 
+# Dimensions of the data set (number of rows and columns)
+dim(citi_cb)
+
+# Variables of the data set
+names(citi_cb)
+
+# Summary of the data set
+summary(citi_cb)
+
+# Alternative to summary to get an overview of the data frame
+skim(citi_cb)
+
+# Interesting function (creates an HTML report)
+create_report(citi_cb)
+
+# Ranking of the most to least popular stations
+
+citi_cb %>% group_by(start.station.name) %>% summarize(count=n())
+```
 
 ## Frequencies
 

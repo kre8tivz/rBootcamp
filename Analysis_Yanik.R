@@ -25,9 +25,12 @@ citibike_weather_df <- read.csv('citibike_weather_2019.csv')
 # Weekday with most trips
 #####################################
 
-#getting the weekdays
 
+Sys.setlocale("LC_TIME", "English") #Weekdays in english
+
+#getting the weekdays
 citibike_weather_df$weekday <- weekdays(as.Date(citibike_weather_df$DATE))
+citibike_weather_df$weekday <- factor(citibike_weather_df$weekday,levels = c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"))
 
 # Histogram
 ggplot(data.frame(citibike_weather_df$weekday), aes(x=citibike_weather_df$weekday, fill=factor(citibike_weather_df$weekday))) +
