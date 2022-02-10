@@ -69,9 +69,56 @@ skim(citibike_weather_df)
 # Interesting function (creates an HTML report)
 create_report(citibike_weather_df)
 
-# Ranking of the most to least popular stations
+# Top ten stations
+citibike_weather_df %>% 
+  group_by(start.station.name) %>% 
+  summarise(count=n())
 
-citibike_weather_df %>% group_by(start.station.name) %>% summarize(count=n())
+
+most_popular <- data.frame(citibike_weather_df %>%
+  group_by(start.station.name) %>% 
+  summarize(count=n()) %>% 
+  arrange(desc(count)))
+
+most_popular_stations <- most_popular %>%
+  left_join(citibike_weather_df, by = "start.station.name") %>%
+  select(start.station.name, count, start.station.longitude, start.station.latitude)
+
+station_ranking_top10 <- head(distinct(most_popular_stations),10)
+
+
+leaflet() %>%
+  addTiles() %>%
+  addCircles(data = station_ranking_top10,
+             lng = station_ranking_top10$start.station.longitude, 
+             lat = station_ranking_top10$start.station.latitude,
+             popup = (citibike_weather_df$start.station.name)) %>% 
+  setView(-74.00, 40.71, zoom = 12) %>%
+  addProviderTiles("CartoDB.Positron")
+
+# Top 10 least popular stations
+
+least_popular <- data.frame(citibike_weather_df %>%
+                             group_by(start.station.name) %>% 
+                             summarize(count=n()) %>% 
+                             arrange(desc(count)))
+
+least_popular_stations <- least_popular %>%
+  left_join(citibike_weather_df, by = "start.station.name") %>%
+  select(start.station.name, count, start.station.longitude, start.station.latitude)
+
+station_ranking_least10 <- head(distinct(least_popular_stations),10)
+
+
+leaflet() %>%
+  addTiles() %>%
+  addCircles(data = station_ranking_least10,
+             lng = station_ranking_least10$start.station.longitude, 
+             lat = station_ranking_least10$start.station.latitude,
+             popup = (citibike_weather_df$start.station.name)) %>% 
+  setView(-74.00, 40.71, zoom = 12) %>%
+  addProviderTiles("CartoDB.Positron")
+
 
 
 #####################################
@@ -117,8 +164,7 @@ leaflet(nyc_neighborhoods) %>%
 # Link to bike lanes in NYC: 
 # https://data.cityofnewyork.us/Transportation/Bicycle-Routes/7vsa-caz7
 
-
-nyc_bike_lanes <- read_sf("C:/Users/noelr/OneDrive/Documents/rBootcamp/citibike_vis/NYC_BICYCLE_NETWORK_19D_20210311.shp")
+nyc_bike_lanes <- read_sf("C:/Users/noelr/OneDrive/Documents/rBootcamp/citibike_vis/NYC_BICYCLE_NETWORK_19D_202103.shp")
 # https://community.rstudio.com/t/projection-problems-with-leaflet/27747
 nyc_bike_lanes_transformed <- st_transform(nyc_bike_lanes, 4326)
 
