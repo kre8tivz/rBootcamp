@@ -38,10 +38,15 @@ server <- function(input, output) {
     #                                         ifelse(citibike_weather_df$tripduration >900 & citibike_weather_df$tripduration <=1800, '15 to 30 min',
     #                                         ifelse(citibike_weather_df$tripduration >1800 & citibike_weather_df$tripduration <=3600, '30 to 60 min','over 60 min'))))
     
+    # Read the bike lane shape file
     nyc_bike_lanes <- read_sf("C:/Users/noelr/OneDrive/Documents/rBootcamp/citibike_vis/NYC_BICYCLE_NETWORK_19D_20210311.shp")
     # https://community.rstudio.com/t/projection-problems-with-leaflet/27747
     nyc_bike_lanes_transformed <- st_transform(nyc_bike_lanes, 4326)
     
+    # Read the shape file with NYC's boroughs
+    nyc_boroughs <- read_sf("C:/Users/noelr/OneDrive/Documents/rBootcamp/citibike_vis/nybb.shp")
+    # https://community.rstudio.com/t/projection-problems-with-leaflet/27747
+    nyc_boroughs_transformed <- st_transform(nyc_boroughs, 4326)
     
     # Create color palette for category type
     # pal <- colorFactor(pal = c("#33BEFF", "#7AFF33", "#FF5733", "#FFDD33"), domain = c("winter", "spring", "summer", "autumn"))
@@ -64,16 +69,20 @@ server <- function(input, output) {
             addPolygons(data = nyc_bike_lanes_transformed, # Add bike lanes to map
                         color = "#2c7fb8", 
                         fill = NA, 
-                        weight = 1.5) %>% 
+                        weight = 1.5) %>%
+            addPolygons(data = nyc_boroughs_transformed,
+                        color = "#ff9900",
+                        fill = NA,
+                        weight = 2) %>% 
             addCircles(lng = citibike_weather_df$start.station.longitude, 
                        lat = citibike_weather_df$start.station.latitude,
-                       color = "#8dd3c7") %>%
+                       color = "#00e600") %>%
             addCircleMarkers(lng = citibike_weather_df$start.station.longitude, lat = citibike_weather_df$start.station.latitude,
                              radius = 3, 
                              popup = ~as.character(citibike_weather_df$content),
     #                        color = ~pal(tripduration_cat),
                              stroke = FALSE, 
-                             fillOpacity = 0.1,
+                             fillOpacity = 0.5,
                              clusterOptions = markerClusterOptions()) %>%
     #       addLegend(pal=pal, values=citibike_weather_df$tripduration_cat, opacity=1, na.label="Not Available") %>%
             addProviderTiles("CartoDB.Voyager") %>%
