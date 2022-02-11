@@ -8,8 +8,9 @@ output:
     toc_depth: 3
     number_sections: true
     includes:
-      in_header: "wrap-code.tex"
-    latex_engine: xelatex
+      in_header: "wrap-code.tex"                  # Wraps code (when not fitting on one line)
+    latex_engine: xelatex                         # Solves encoding issue
+geometry: "left=2cm,right=2cm,top=2cm,bottom=2cm" # Customize margins
 biblio-style: apa
 bibliography: Sources.bib
 ---
@@ -66,15 +67,6 @@ require(rgdal)
 require(httr)
 require(broom)
 ```
-
-## Deactivation of Scientific Notation
-
-```{r}
-#Deactivate scientific notation
-options(scipen = 999)
-
-```
-
 
 
 # Data Preparation
@@ -220,31 +212,23 @@ citi_cb$tripduration_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
 
 ## Outlier Detection and Elimination
 
-Outliers can have a large influence on statistics derived from the dataset which is why they need to be dealt with. The variable *tripduration* consists of the time (in seconds) a customer gets a bicycle from citi bike until the bike is returned to a station with an empty dock. Hence, there could be natural as well as non-natural outliers. While the non-natural outliers stem from measurement errors (system failures and similar), the cause of natural outliers could stem from customers not returning the rented bike, customers who could not return the rented bike or similar.
+Outliers can have a large impact on the statistics derived from the dataset, which is why they need to be handled or at least be aware of. The variable *tripduration* consists of the time (in seconds) a customer rents a bike from Citi Bike until the bike is returned to a station with an empty dock. Therefore, there can be both natural and non-natural outliers. While the non-natural outliers are due to measurement errors (e.g. system failures), natural outliers could be due to customers not returning the rented bike, customers not being able to return the rented bike until the next day, or similar.
 
 ```{r}
 #Deactivate scientific notation
 options(scipen = 999)
 
 # Check if the variable trip duration has outliers
-boxplot(citi_cb$tripduration)
-
-# Check how the variables trip duration and average temperature are distributed
-hist(citi_cb$tripduration)
-hist(citi_cb$meantemp)
-hist(citi_cb$PRCP)
-
-# Neither the variable trip duration nor the variable average temperature
-# are normally distributed and both are quantitative variables
-# Hence, we use a nonparametric test -> Spearman's rank correlation
-
+boxplot(citi_cb$tripduration, horizontal=TRUE)
 
 ```
 
-```{r}
+The boxplot reveals that the variable *tripduration* contains two extreme outliers - one of about 64 hours and the other of about 278 hours. The fact that bicycles are rented for more than 24 hours can be considered as important information, but renting for several days is not in line with the purpose and design of the service. Although the cause of these outliers is not known, we decided to remove all outliers above 12 hours.
 
+```{r}
 # Remove outliers in the variable trip duration
-citi_cb <- subset(citi_cb, tripduration < 6000)
+citi_cb <- subset(citi_cb, tripduration < 43200)
+boxplot(citi_cb$tripduration, horizontal=TRUE)
 
 ```
 
@@ -255,22 +239,8 @@ citi_cb <- subset(citi_cb, tripduration < 6000)
 
 ## Data Inspection
 ```{r}
-# First and last 5 observations
-# head(citi_cb)
-# tail(citi_cb)
-# 
-# # Dimensions of the data set (number of rows and columns)
-# dim(citi_cb)
-# 
-# # Variables of the data set
-# names(citi_cb)
-# 
-# # Summary of the data set
-# summary(citi_cb)
-
 # Alternative to summary to get an overview of the data frame
 skim(citi_cb)
-
 
 ```
 
@@ -292,23 +262,6 @@ most_popular_stations <- most_popular %>%
 station_ranking_top10 <- head(distinct(most_popular_stations),10)
 station_ranking_top10
 
-# webshot::install_phantomjs()
-# library(mapview)
-# library(webshot)
-# 
-# m <- leaflet() %>%
-#   addTiles() %>%
-#   addCircles(data = station_ranking_top10,
-#              lng = station_ranking_top10$start.station.longitude, 
-#              lat = station_ranking_top10$start.station.latitude,
-#              popup = (citi_cb$start.station.name)) %>% 
-#   setView(-74.00, 40.71, zoom = 12) %>%
-#   addProviderTiles("CartoDB.Voyager")
-# 
-# ## 'leaflet' objects (image above)
-# mapshot(m, file = "most_popular_stations.png")
-# 
-# knitr::include_graphics('most_popular_stations.png')
 
 ```
 
@@ -339,8 +292,63 @@ station_ranking_least10
 
 ### Influence of Temperature
 
+```{r}
+## How strong is the effect of the average daily temperature on the trip duration?
+ggplot(citi_cb, aes(x=meantemp, y=tripduration)) +
+  geom_point(color='#2980B9') + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE, color='#2C3E50') +
+  ggtitle(label="Effect of Average daily Temperature on Trip Duration") +
+  ggeasy::easy_center_title() +
+  xlab("Average daily temperature") +
+  ylab("Trip duration (in seconds)")
+
+# Spearman because there are two quantitative variables
+cor(x=citi_cb$meantemp, y=citi_cb$tripduration, method="spearman")
+
+```
+
+
+
+
 
 ### Influence of Precipitation
+
+```{r}
+# How strong is the effect of precipitation on the number of trips?
+
+# Calculate for each category of precipitation how often it rained
+rain_cat_freq <- citi_cb %>%
+  group_by(raingrouped) %>%
+  summarise(counts = n())
+
+# Plot of the result
+ggplot(rain_cat_freq, aes(x = raingrouped, y = counts)) +
+  geom_bar(fill = "#0073C2FF", 
+           stat = "identity") +
+  geom_text(aes(label = counts), 
+            vjust = -0.3) + # Label above bar
+  xlab("Rain Category") +
+  ylab("Number of Rides")
+  
+```
+
+```{r, results="asis"}
+## How strong is the effect of precipitation on the trip duration?
+ggplot(citi_cb, aes(x=PRCP, y=tripduration)) +
+  geom_point(color='#2980B9') + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE, color='#2C3E50') +
+  ggtitle(label="Effect of Precipitation on Trip Duration") +
+  ggeasy::easy_center_title() +
+  xlab("Precipitation (in mm)") +
+  ylab("Trip duration (in seconds)")
+
+cor_tripduration_precipitation <- round(cor(x=citi_cb$PRCP, 
+                                            y=citi_cb$tripduration, 
+                                            method="spearman"),2)
+print(paste0("Interpretation: For every mm of precipitation, the time a customer rents a bike changes by ", cor_tripduration_precipitation, " seconds."))
+
+```
+
 
 
 ### Influence of Snowfall and Snow Depth
@@ -352,7 +360,7 @@ station_ranking_least10
 
 # Lessons Learned
 
-* To display maps in a pdf document or any other format except HTML, static maps need to be used. Leaflet is a JavaScript library for building interactive maps for the web and hence not static.
+* To display maps in a pdf document or any other format except HTML, static maps need to be used. Leaflet - which was used initially - is a JavaScript library for building interactive maps for the web and hence not static. There is a workaround which is however not recommended to use.
 
 # Sources
 
