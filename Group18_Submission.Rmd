@@ -9,6 +9,7 @@ output:
     number_sections: true
     includes:
       in_header: "wrap-code.tex"
+    latex_engine: xelatex
 biblio-style: apa
 bibliography: Sources.bib
 ---
@@ -24,7 +25,7 @@ Noel Rinke and Yanik Baumann are two students at the Lucerne University of Appli
 
 ## Background Information on New York's Bike-Sharing Scheme (work-in-progress)
 
-The bike sharing system Citi Bike began operating in New York City in 2013 [@LyftInc22]. With 19000 bikes and more than 1000 stations (as of 2022), Citi Bike is the largest bike-sharing system in the United States, making it an integral part of New York City's transport network [@LyftInc22]. The bike-sharing scheme consists of a fleet of specifically engineered, long-lasting bicycles that are connected to a network of stations which span with Manhattan, Brooklyn, Queens and the Bronx four of the five boroughs of New York City as well as Jersey City and Hoboken. Citi Bike provides an app which allows its customers to unlock bikes, see real-time station information, and personalized data such as kilometers traveled and calories burnt.
+The bike sharing scheme Citi Bike began operating in New York City in 2013 [@LyftInc22]. With 19000 bikes and more than 1000 stations (as of 2022), Citi Bike is the largest bike-sharing service in the United States, making it an integral part of New York City's transport network [@LyftInc22]. The bike-sharing scheme consists of a fleet of specifically engineered, long-lasting bicycles that are connected to a network of stations which span with Manhattan, Brooklyn, Queens and the Bronx four of the five boroughs of New York City as well as Jersey City and Hoboken. Citi Bike provides an app which allows its customers to unlock bikes, see real-time station information, and personalized data such as kilometers traveled and calories burnt.
 
 As the New York Times [-@Hu2021] reported "*traffic has come roaring back in New York City after largely disappearing at the height of the corona virus pandemic*". While cars contribute to traffic congestion, greenhouse gas emissions and global warming, bicycles offer an environmentally friendlier, healthier, more economical and less space-consuming transportation alternative.
 
@@ -45,11 +46,10 @@ The second dataset used stems from the National Oceanic and Atmospheric Administ
 
 # Installation of Packages
 
-```{r packages, echo=TRUE, warning=FALSE}
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 require(maps)
 require(leaflet)
 require(skimr)
-require(DataExplorer)
 require(st)
 require(sf)
 require(leaflet.extras)
@@ -74,7 +74,7 @@ This chapter describes how to import and prepare the data sets.
 
 ## Data Import
 
-```{r data import, echo=TRUE, eval=FALSE, tidy=TRUE}
+```{r}
 citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
 
@@ -89,7 +89,7 @@ citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 
 ```
 
-```{r data import (weather data)}
+```{r}
 nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv'))
 
@@ -98,7 +98,7 @@ nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 
 ## Taking Samples
 
-```{r sample, echo=TRUE, eval=FALSE,}
+```{r}
 citibike_jan19_sample <- sample_n(citibike_jan19, size=1000)
 citibike_apr19_sample <- sample_n(citibike_apr19, size=1000)
 citibike_jul19_sample <- sample_n(citibike_jul19, size=1000)
@@ -108,7 +108,7 @@ citibike_oct19_sample <- sample_n(citibike_oct19, size=1000)
 
 ## Adding Season to the data sets
 
-```{r sample, echo=TRUE, eval=FALSE,}
+```{r}
 citibike_jan19_sample <- cbind(citibike_jan19_sample, season='winter')
 citibike_apr19_sample <- cbind(citibike_apr19_sample, season='spring')
 citibike_jul19_sample <- cbind(citibike_jul19_sample, season='summer')
@@ -118,39 +118,39 @@ citibike_oct19_sample <- cbind(citibike_oct19_sample, season='autumn')
 
 ## Merging the Datasets from Citibike
 
-```{r dataset merge, echo=TRUE, eval=FALSE,}
+```{r}
 citibike_merged_2019 <- rbind(citibike_jan19_sample, citibike_apr19_sample, citibike_jul19_sample, citibike_oct19_sample)
 
 ```
 
 ## Adding Date-column
 
-```{r add date column, echo=TRUE, eval=FALSE,}
-citibike_merged_2019$DATE <- substr(citibike_merged$starttime, 1, 10)
+```{r}
+citibike_merged_2019$DATE <- substr(citibike_merged_2019$starttime, 1, 10)
 
 ```
 
 ## Cleaning the weather data set
 
-```{r cleaning weather data, echo=TRUE, eval=FALSE,}
+```{r}
 nyc_weather_cleaned <- subset(nyc_weather_2019, select = -c(TSUN, TAVG, AWND))
 
 ```
 
 ## Join citibike_merged_2019 and the nyc_weather_cleaned
 
-```{r leftjoin citibike and weather, echo=TRUE, eval=FALSE,}
-citi_cb <- left_join(citibike_merged, nyc_weather_cleaned, 
+```{r}
+citi_cb <- left_join(citibike_merged_2019, nyc_weather_cleaned, 
                                        by='DATE')
 ```
 
 ## Calculate average temperature
-```{r calc avg temp, echo=TRUE, eval=FALSE,}
+```{r}
 citi_cb$meantemp <- (citi_cb$TMAX + citi_cb$TMIN) / 2
 ```
 
 ## Grouping rain intensity
-```{r grouping rain intensity, echo=TRUE, eval=FALSE,}
+```{r}
 citi_cb$raingrouped <- ifelse(citi_cb$PRCP == 0, 'no rain',
                        ifelse(citi_cb$PRCP > 0   & citi_cb$PRCP <=2.0, 'weak',
                        ifelse(citi_cb$PRCP >2.0  & citi_cb$PRCP <=10.0, 'moderate',
@@ -158,12 +158,12 @@ citi_cb$raingrouped <- ifelse(citi_cb$PRCP == 0, 'no rain',
 ```
 
 ## Snow Yes/No
-```{r snow yes/no, echo=TRUE, eval=FALSE,}
+```{r}
 citi_cb$Snow_yesno <- ifelse(citi_cb$SNOW > 0, 'yes', 'no')
 ```
 
 ## Getting the weekdays
-```{r getting the weekdays, echo=TRUE, eval=FALSE,}
+```{r}
 # Weekdays in english
 Sys.setlocale("LC_TIME", "English")
 
@@ -176,7 +176,7 @@ citi_cb$weekday <- factor(citi_cb$weekday,levels = c("Monday","Tuesday","Wednesd
 ```
 
 ## Getting Time and Daytimes
-```{r Getting Time and Daytimes, echo=TRUE, eval=FALSE,}
+```{r}
 citi_cb$onlytime <- as.POSIXct(substr(citi_cb$starttime, 12, 19), format="%H:%M:%S")
 
 # Only Hours and Minutes
@@ -199,7 +199,7 @@ citi_cb$daytime <- factor(citi_cb$daytime,levels = c("morning","afternoon","even
 ```
 
 ## Setting trip duration groups
-```{r grouping trip duration, echo=TRUE, eval=FALSE,}
+```{r}
 citi_cb$tripduration_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
                             ifelse(citi_cb$tripduration >300 & citi_cb$tripduration <=900, '5 to 15 min',
                             ifelse(citi_cb$tripduration >900 & citi_cb$tripduration <=1800, '15 to 30 min',
@@ -212,30 +212,32 @@ citi_cb$tripduration_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
 
 
 ## Data Inspection
-```{r data inspectation, echo=TRUE, eval=FALSE,}
+```{r}
 # First and last 5 observations
-head(citi_cb)
-tail(citi_cb)
-
-# Dimensions of the data set (number of rows and columns)
-dim(citi_cb)
-
-# Variables of the data set
-names(citi_cb)
-
-# Summary of the data set
-summary(citi_cb)
+# head(citi_cb)
+# tail(citi_cb)
+# 
+# # Dimensions of the data set (number of rows and columns)
+# dim(citi_cb)
+# 
+# # Variables of the data set
+# names(citi_cb)
+# 
+# # Summary of the data set
+# summary(citi_cb)
 
 # Alternative to summary to get an overview of the data frame
 skim(citi_cb)
 
-# Interesting function (creates an HTML report)
-create_report(citi_cb)
 
+```
+
+```{r}
 # Ranking of the most to least popular stations
 
 citi_cb %>% group_by(start.station.name) %>% summarize(count=n())
 ```
+
 
 ## Frequencies
 
