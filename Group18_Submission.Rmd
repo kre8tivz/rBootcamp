@@ -67,6 +67,16 @@ require(httr)
 require(broom)
 ```
 
+## Deactivation of Scientific Notation
+
+```{r}
+#Deactivate scientific notation
+options(scipen = 999)
+
+```
+
+
+
 # Data Preparation
 
 This chapter describes how to import and prepare the data sets.
@@ -207,6 +217,38 @@ citi_cb$tripduration_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
                                    citi_cb$tripduration <=3600, '30 to 60 min','over 60 min'))))
 ```
 
+
+## Outlier Detection and Elimination
+
+Outliers can have a large influence on statistics derived from the dataset which is why they need to be dealt with. The variable *tripduration* consists of the time (in seconds) a customer gets a bicycle from citi bike until the bike is returned to a station with an empty dock. Hence, there could be natural as well as non-natural outliers. While the non-natural outliers stem from measurement errors (system failures and similar), the cause of natural outliers could stem from customers not returning the rented bike, customers who could not return the rented bike or similar.
+
+```{r}
+#Deactivate scientific notation
+options(scipen = 999)
+
+# Check if the variable trip duration has outliers
+boxplot(citi_cb$tripduration)
+
+# Check how the variables trip duration and average temperature are distributed
+hist(citi_cb$tripduration)
+hist(citi_cb$meantemp)
+hist(citi_cb$PRCP)
+
+# Neither the variable trip duration nor the variable average temperature
+# are normally distributed and both are quantitative variables
+# Hence, we use a nonparametric test -> Spearman's rank correlation
+
+
+```
+
+```{r}
+
+# Remove outliers in the variable trip duration
+citi_cb <- subset(citi_cb, tripduration < 6000)
+
+```
+
+
 # Analysis
 
 
@@ -233,9 +275,56 @@ skim(citi_cb)
 ```
 
 ```{r}
-# Ranking of the most to least popular stations
+# The 10 most popular stations
+citi_cb %>% 
+  group_by(start.station.name) %>% 
+  summarise(count=n())
 
-citi_cb %>% group_by(start.station.name) %>% summarize(count=n())
+most_popular <- data.frame(citi_cb %>%
+  group_by(start.station.name) %>% 
+  summarize(count=n()) %>% 
+  arrange(desc(count)))
+
+most_popular_stations <- most_popular %>%
+  left_join(citi_cb, by = "start.station.name") %>%
+  select(start.station.name, count, start.station.longitude, start.station.latitude)
+
+station_ranking_top10 <- head(distinct(most_popular_stations),10)
+station_ranking_top10
+
+# webshot::install_phantomjs()
+# library(mapview)
+# library(webshot)
+# 
+# m <- leaflet() %>%
+#   addTiles() %>%
+#   addCircles(data = station_ranking_top10,
+#              lng = station_ranking_top10$start.station.longitude, 
+#              lat = station_ranking_top10$start.station.latitude,
+#              popup = (citi_cb$start.station.name)) %>% 
+#   setView(-74.00, 40.71, zoom = 12) %>%
+#   addProviderTiles("CartoDB.Voyager")
+# 
+# ## 'leaflet' objects (image above)
+# mapshot(m, file = "most_popular_stations.png")
+# 
+# knitr::include_graphics('most_popular_stations.png')
+
+```
+
+```{r}
+# The 10 least popular stations
+least_popular <- data.frame(citi_cb %>%
+                             group_by(start.station.name) %>% 
+                             summarize(count=n()) %>% 
+                             arrange(desc(count)))
+
+least_popular_stations <- least_popular %>%
+  left_join(citi_cb, by = "start.station.name") %>%
+  select(start.station.name, count, start.station.longitude, start.station.latitude)
+
+station_ranking_least10 <- head(distinct(least_popular_stations),10)
+station_ranking_least10
 ```
 
 
@@ -261,6 +350,9 @@ citi_cb %>% group_by(start.station.name) %>% summarize(count=n())
 # Results
 
 
+# Lessons Learned
+
+* To display maps in a pdf document or any other format except HTML, static maps need to be used. Leaflet is a JavaScript library for building interactive maps for the web and hence not static.
 
 # Sources
 
