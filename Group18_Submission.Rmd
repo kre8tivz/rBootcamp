@@ -260,8 +260,9 @@ most_popular_stations <- most_popular %>%
   select(start.station.name, count, start.station.longitude, start.station.latitude)
 
 station_ranking_top10 <- head(distinct(most_popular_stations),10)
-station_ranking_top10
 
+station_ranking_top10 %>%
+  select(start.station.name, count)
 
 ```
 
@@ -277,7 +278,9 @@ least_popular_stations <- least_popular %>%
   select(start.station.name, count, start.station.longitude, start.station.latitude)
 
 station_ranking_least10 <- head(distinct(least_popular_stations),10)
-station_ranking_least10
+
+station_ranking_least10 %>%
+  select(start.station.name, count)
 ```
 
 
