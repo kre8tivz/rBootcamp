@@ -69,7 +69,16 @@ skim(citibike_weather_df)
 # Interesting function (creates an HTML report)
 create_report(citibike_weather_df)
 
-# Top ten stations
+#####################################
+# Top 10 most popular stations
+#####################################
+
+# Workaround to save image from Leaflet
+# Leaflet is a JavaScript library for building interactive maps for the web and hence not static
+webshot::install_phantomjs()
+library(mapview)
+library(webshot)
+
 citibike_weather_df %>% 
   group_by(start.station.name) %>% 
   summarise(count=n())
@@ -85,18 +94,27 @@ most_popular_stations <- most_popular %>%
   select(start.station.name, count, start.station.longitude, start.station.latitude)
 
 station_ranking_top10 <- head(distinct(most_popular_stations),10)
+station_ranking_top10
 
-
-leaflet() %>%
+m <- leaflet() %>%
   addTiles() %>%
   addCircles(data = station_ranking_top10,
              lng = station_ranking_top10$start.station.longitude, 
              lat = station_ranking_top10$start.station.latitude,
              popup = (citibike_weather_df$start.station.name)) %>% 
   setView(-74.00, 40.71, zoom = 12) %>%
-  addProviderTiles("CartoDB.Positron")
+  addProviderTiles("CartoDB.Voyager")
 
+
+
+## 'leaflet' objects (image above)
+mapshot(m, file = "most_popular_stations.png")
+
+
+#####################################
 # Top 10 least popular stations
+#####################################
+
 
 least_popular <- data.frame(citibike_weather_df %>%
                              group_by(start.station.name) %>% 
@@ -265,25 +283,27 @@ ggplot(citibike_weather_df, aes(x=meantemp, y=tripduration)) +
   xlab("Average daily temperature") +
   ylab("Trip duration (in seconds")
 
-cor(x=meantemp, y=tripduration, method="spearman")
+cor(x=citibike_weather_df$meantemp, y=citibike_weather_df$tripduration, method="spearman")
 
 ## How strong is the effect of precipitation on the number of trips?
 
+# Calculate the for each category of precipitation how often it rained
 rain_cat_freq <- citibike_weather_df %>%
   group_by(raingrouped) %>%
   summarise(n = n()) %>%
   mutate(Freq = n/sum(n))
 
-ggplot(citibike_weather_df, aes(x=raingrouped, y=counts)) +
-  geom_bar(fill = "#0073C2FF")
-
 rain_cat_freq
+
+ggplot(rain_cat_freq, aes(x=raingrouped, y=n)) +
+  geom_bar(fill = "#0073C2FF")
 
 hist(rain_cat_freq)
 
 rain_cat_freq <- citibike_weather_df %>%
   group_by(raingrouped) %>%
   summarise(counts = n())
+
 
 ggplot(rain_cat_freq, aes(x = raingrouped, y = counts)) +
   geom_bar(fill = "#0073C2FF", 
@@ -302,4 +322,4 @@ ggplot(citibike_weather_df, aes(x=PRCP, y=tripduration)) +
   ylab("Trip duration (in seconds)")
 
 cor_tripduration_precipitation <- round(cor(x=citibike_weather_df$PRCP, y=citibike_weather_df$tripduration, method="spearman"),2)
-print(paste0("Interpretation: For every mm of precipitation, the time a customer rents a bike decreases by ", cor_tripduration_precipitation, " seconds."))
+print(paste0("Interpretation: For every mm of precipitation, the time a customer rents a bike changes by ", cor_tripduration_precipitation, " seconds."))
