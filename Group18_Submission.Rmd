@@ -48,24 +48,25 @@ The second dataset used stems from the National Oceanic and Atmospheric Administ
 # Installation of Packages
 
 ```{r, echo=TRUE, warning=FALSE, message=FALSE}
-require(maps)
-require(leaflet)
-require(skimr)
-require(st)
-require(sf)
-require(leaflet.extras)
-require(ggeasy)
+
+require(knitr)          # engine for dynamic report generation
+require(dplyr)          # for data manipulation
 require(tidyr)
-require(ggplot2)
-require(ggthemes)
-require(dplyr)
-require(scales)
-require(knitr)
-require(lubridate)
-require(ggmap)
+require(broom)          # for summarizing statistical model objects in tidy tibbles
+require(lubridate)      # for working with date-times and time-spans
+require(skimr)          # for summary statistic
+require(ggplot2)        # tidyverse data visualization package
+require(ggeasy)         # Provides a series of aliases to commonly used but difficult to remember 'ggplot2' sequences
+require(ggthemes)       # extra themes, geoms, and scales for 'ggplot2'
+require(scales)         # internal scaling infrastructure to ggplot2 and its functions
+require(maps)           # for computing the areas of regions in a projected map
+require(ggmap)          # to visualize spatial data and models on top of static maps from various online sources (i.e. GMaps or Stamen)
+require(leaflet)        # for interactive maps
+require(leaflet.extras) # add-on to the 'leaflet' package by providing extra functionality
+require(st)
+require(sf)             # standardized way to encode spatial vector data
 require(rgdal)
-require(httr)
-require(broom)
+
 ```
 
 
@@ -288,6 +289,22 @@ station_ranking_least10 %>%
 
 
 ## Density Map: Identifiying the most and least popular Districts
+
+```{r}
+leaflet() %>%
+  addTiles() %>%
+  addCircles(data = station_ranking_top10,
+             lng = station_ranking_top10$start.station.longitude,
+             lat = station_ranking_top10$start.station.latitude,
+             popup = (citi_cb$start.station.name)) %>%
+  setView(-74.00, 40.71, zoom = 12) %>%
+  addProviderTiles("CartoDB.Voyager")
+
+
+
+
+```
+
 
 
 ## Influence of Meteorological Factors
