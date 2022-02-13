@@ -1,7 +1,7 @@
 
-#####################################
+##########################################################################
 # Load Libraries
-#####################################
+##########################################################################
 
 library(ggplot2)
 library(maps)
@@ -14,17 +14,43 @@ library(dplyr)
 library(leaflet.extras)
 library(ggeasy)
 library(ggpubr)
+library(ggmap)
+library(RColorBrewer)
 
-#####################################
+##########################################################################
+# Notes for this script
+##########################################################################
+
+# There are different ways to create maps in R. It needs to be differentiated between static and dynamic maps:
+
+# Dynamic map: Interactive object which are designed for web pages or applications.
+# Static map: Static maps can be used for any output format but are not interactive.
+
+# Maps can be created in R with different map providers and packages. It needs to be noted that some of the providers require API keys:
+
+# PACKAGES:
+  # ggmap (static)
+  # Leaflet (dynamic)
+  # OpenStreetMap (dynamic)
+
+
+# MAP PROVIDERS:
+  # Google Maps (requires API key -> Credit card required ... no credit card required with developer access) https://www.youtube.com/watch?v=367oxHpnn_4&t=116s
+  # OpenStreetMap (requires API key -> which is FREE)
+  # Stamen Maps (no API required)
+  # CloudMade Maps
+
+
+##########################################################################
 # Options
-#####################################
+##########################################################################
 
 #Deactivate scientific notation
 options(scipen = 999)
 
-#####################################
+##########################################################################
 # Read CSV
-#####################################
+##########################################################################
 
 citibike_weather_df <- read.csv('citibike_weather_2019.csv')
 View(citibike_weather_df)
@@ -33,22 +59,47 @@ View(citibike_weather_df)
 class(citibike_weather_df)
 
 
-#####################################
+##########################################################################
 # Data mutation
-#####################################
+##########################################################################
 
 # Add column with trip duration groups
-
 citibike_weather_df$tripduration_cat <- ifelse(citibike_weather_df$tripduration <=300, '0 to 5 min',
                                         ifelse(citibike_weather_df$tripduration >300 & citibike_weather_df$tripduration <=900, '5 to 15 min',
                                         ifelse(citibike_weather_df$tripduration >900 & citibike_weather_df$tripduration <=1800, '15 to 30 min',
                                         ifelse(citibike_weather_df$tripduration >1800 & citibike_weather_df$tripduration <=3600, '30 to 60 min','over 60 min'))))
 
 
+# Here we add a new column to the DF with info summarized information
+# The info can be used as a popup for markers in interactive maps 
+# The info pops up when the markers on the map are clicked 
+# paste0() concatenates the strings
+citibike_weather_df <- mutate(citibike_weather_df, content=paste0('<strong>Start time: </strong>',starttime,
+                                                                  '<br><strong>Stop time: </strong>',stoptime,
+                                                                  '<br><strong>Start station: </strong>',start.station.name,
+                                                                  '<br><strong>End station: </strong>',end.station.name,
+                                                                  '<br><strong>Start station lat & long: </strong>',start.station.latitude,", ",start.station.longitude,
+                                                                  '<br><strong>End station lat & long: </strong>',end.station.latitude,", ",end.station.longitude,
+                                                                  '<br><strong>Avg temperature (°C): </strong>',meantemp))
 
-#####################################
+
+##########################################################################
+# Load Polygons      
+##########################################################################
+
+# New York City Bike Lanes Polygon
+
+# Link to bike lanes in NYC: https://data.cityofnewyork.us/Transportation/Bicycle-Routes/7vsa-caz7
+# Read polygons with New York City's bike lanes 
+nyc_bike_lanes <- read_sf("C:/Users/noelr/OneDrive/Documents/rBootcamp/citibike_vis/NYC_BICYCLE_NETWORK_19D_202103.shp")
+
+# Why it is important to transform the data: https://community.rstudio.com/t/projection-problems-with-leaflet/27747
+nyc_bike_lanes_transformed <- st_transform(nyc_bike_lanes, 4326)
+
+
+##########################################################################
 # Inspect Data
-#####################################
+##########################################################################
 
 # First and last 5 observations
 head(citibike_weather_df)
@@ -69,9 +120,15 @@ skim(citibike_weather_df)
 # Interesting function (creates an HTML report)
 create_report(citibike_weather_df)
 
-#####################################
-# Top 10 most popular stations
-#####################################
+
+##########################################################################
+# DATA ANALYSIS
+##########################################################################
+
+
+#############################################     #################################
+# Top 10 most popular stations with Leaflet #     # !! NO USE FOR RMD FILE !!     #
+#############################################     #################################
 
 # Workaround to save image from Leaflet
 # Leaflet is a JavaScript library for building interactive maps for the web and hence not static
@@ -82,7 +139,6 @@ library(webshot)
 citibike_weather_df %>% 
   group_by(start.station.name) %>% 
   summarise(count=n())
-
 
 most_popular <- data.frame(citibike_weather_df %>%
   group_by(start.station.name) %>% 
@@ -96,6 +152,10 @@ most_popular_stations <- most_popular %>%
 station_ranking_top10 <- head(distinct(most_popular_stations),10)
 station_ranking_top10
 
+station_ranking_top10 %>% 
+  select(start.station.name, count)
+
+# Create map with markers to show the top 10 stations
 m <- leaflet() %>%
   addTiles() %>%
   addCircles(data = station_ranking_top10,
@@ -105,16 +165,13 @@ m <- leaflet() %>%
   setView(-74.00, 40.71, zoom = 12) %>%
   addProviderTiles("CartoDB.Voyager")
 
-
-
-## 'leaflet' objects (image above)
+# Create png of the created map
 mapshot(m, file = "most_popular_stations.png")
 
 
-#####################################
-# Top 10 least popular stations
-#####################################
-
+###############################################    #################################
+# Top 10 least popular stations with Leaflet  #    # !! NO USE FOR RMD FILE !!     #
+###############################################    #################################
 
 least_popular <- data.frame(citibike_weather_df %>%
                              group_by(start.station.name) %>% 
@@ -139,9 +196,9 @@ leaflet() %>%
 
 
 
-#####################################
-# Map of New York
-#####################################
+#####################################    #################################
+# Plain map of New York                  # !! NO USE FOR RMD FILE !!     #
+#####################################    #################################
 
 leaflet() %>%
   addTiles() %>%
@@ -149,24 +206,18 @@ leaflet() %>%
   addProviderTiles("CartoDB.Positron")
 
 
-#####################################
-# Map of New York with polygons
-#####################################
+##########################################################    ################################################
+# Map of New York with polygons showing the neighborhoods     # Note: Leaflet maps not suitable for .Rmd file
+##########################################################    ################################################
 
 library(rgdal)
 library(httr)
+library(broom)
 
 r <- GET('http://data.beta.nyc//dataset/0ff93d2d-90ba-457c-9f7e-39e47bf2ac5f/resource/35dd04fb-81b3-479b-a074-a27a37888ce7/download/d085e2f8d0b54d4590b1e7d1f35594c1pediacitiesnycneighborhoods.geojson')
 nyc_neighborhoods <- readOGR(content(r,'text'), 'OGRGeoJSON', verbose = F, use_iconv = TRUE, encoding = "UTF-8")
 
-library(broom)
-
 nyc_neighborhoods_df <- tidy(nyc_neighborhoods)
-
-
-ggplot() + 
-  geom_polygon(data=nyc_neighborhoods_df, aes(x=long, y=lat, group=group))
-
 
 leaflet(nyc_neighborhoods) %>%
   addTiles() %>% 
@@ -175,28 +226,7 @@ leaflet(nyc_neighborhoods) %>%
 
 
 
-#####################################
-# Map showing the starter          
-#####################################
 
-# Link to bike lanes in NYC: 
-# https://data.cityofnewyork.us/Transportation/Bicycle-Routes/7vsa-caz7
-
-nyc_bike_lanes <- read_sf("C:/Users/noelr/OneDrive/Documents/rBootcamp/citibike_vis/NYC_BICYCLE_NETWORK_19D_202103.shp")
-# https://community.rstudio.com/t/projection-problems-with-leaflet/27747
-nyc_bike_lanes_transformed <- st_transform(nyc_bike_lanes, 4326)
-
-
-
-# Here we add a new column with the info which pops up when the markers are clicked to the DF
-# paste0() concatenates the strings
-citibike_weather_df <- mutate(citibike_weather_df, content=paste0('<strong>Start time: </strong>',starttime,
-                                                                  '<br><strong>Stop time: </strong>',stoptime,
-                                                                  '<br><strong>Start station: </strong>',start.station.name,
-                                                                  '<br><strong>End station: </strong>',end.station.name,
-                                                                  '<br><strong>Start station lat & long: </strong>',start.station.latitude,", ",start.station.longitude,
-                                                                  '<br><strong>End station lat & long: </strong>',end.station.latitude,", ",end.station.longitude,
-                                                                  '<br><strong>Avg temperature (°C): </strong>',meantemp))
 
 
 leaflet(citibike_weather_df) %>%
@@ -215,10 +245,12 @@ leaflet(citibike_weather_df) %>%
   addProviderTiles("CartoDB.Voyager")
 
 
-#####################################
-# Density Map
-# Shows where the most rides started and the bike lanes in NYC
-#####################################
+#####################################     #################################
+# DENSITY MAP: Start Stations       #     # !! NO USE FOR RMD FILE !!     #
+#####################################     #################################
+
+# Shows where the most rides started and the bike lanes in NYC 
+
 
 leaflet(citibike_weather_df) %>%
   addPolygons(data = nyc_bike_lanes_transformed, # Add bike lanes to map
@@ -231,10 +263,11 @@ leaflet(citibike_weather_df) %>%
              max=100, radius=20, blur=10) %>% 
   addProviderTiles("CartoDB.Positron")
   
-#####################################
-# Density Map
+#####################################     #################################
+# DENSITY MAP: End Stations         #     # !! NO USE FOR RMD FILE !!     #
+#####################################     #################################
+
 # Shows where the most rides ended and the bike lanes in NYC
-#####################################
 
 leaflet(citibike_weather_df) %>%
   addPolygons(data = nyc_bike_lanes_transformed, # Add bike lanes to map
@@ -248,9 +281,65 @@ leaflet(citibike_weather_df) %>%
   addProviderTiles("CartoDB.Positron")  
   
 
+#####################################     #################################
+# Density Map with Mapbox           #     # !! NO USE FOR RMD FILE !!     #
+#####################################     #################################
+
+library(mapdeck)
+mb_access_token(token="pk.eyJ1Ijoibm9lbHJuayIsImEiOiJja3hkZzd6a3A0c2IyMndsYWU3dDFoM2F3In0.DJEE19AotBVDcn9_1l-PUA", install = TRUE)
+set_token(Sys.getenv("MAPBOX_PUBLIC_TOKEN"))
+ms = mapdeck_style("dark")
+
+mapdeck(style = ms, 
+        pitch = 45, 
+        location = c(0, 52), 
+        zoom = 3) %>%
+  add_grid(data = citibike_weather_df, 
+           lat = "start.station.latitude", 
+           lon = "start.station.longitude", 
+           cell_size = 500,
+           elevation_scale = 2, 
+           layer_id = "grid_layer",
+           colour_range = viridisLite::plasma(6))
+
+
 #####################################
-# Influence of Meteorological Factors
+# Plain Map with Stamen (ggmap)
 #####################################
+
+# If map appears blurry in plots window, increase the windows size.
+
+lat<- c(40.915568 , 40.495992)
+long<- c(-74.257159 ,-73.699215)
+bbox<- make_bbox(long, lat,f=0.05)
+c<- get_map(bbox, maptype = "toner-lite" , source = "stamen")
+ggmap(c)
+# https://rpubs.com/Joe11579/455454
+
+
+##################################
+# Density map with ggmap (Stamen)
+##################################
+
+bbox <- c(left = -74.1, bottom = 40.65, right = -73.875, top = 40.825)
+ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
+  geom_point(data=citibike_weather_df, 
+             aes(x=start.station.longitude, y=start.station.latitude),size = 0.1, alpha = 0.05)
+
+
+bbox <- c(left = -74.1, bottom = 40.65, right = -73.875, top = 40.825)
+ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
+  stat_density_2d(
+    data = citibike_weather_df, aes(x=start.station.longitude, y=start.station.latitude, fill= ..level..),
+    alpha = .15,
+    bins = 18,
+    geom = "polygon") +
+  scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu"))
+
+
+###############################################################################################################
+# Influence of Meteorological Factors on Bike-Sharing Service
+###############################################################################################################
 
 # Check if the variable trip duration has outliers
 boxplot(citibike_weather_df$tripduration)
@@ -267,7 +356,7 @@ hist(citibike_weather_df$PRCP)
 # are normally distributed and both are quantitative variables
 # Hence, we use a nonparametric test -> Spearman's rank correlation
 
-
+##############################
 # Influence of Temperature
 ##############################
 
@@ -323,3 +412,34 @@ ggplot(citibike_weather_df, aes(x=PRCP, y=tripduration)) +
 
 cor_tripduration_precipitation <- round(cor(x=citibike_weather_df$PRCP, y=citibike_weather_df$tripduration, method="spearman"),2)
 print(paste0("Interpretation: For every mm of precipitation, the time a customer rents a bike changes by ", cor_tripduration_precipitation, " seconds."))
+  
+
+
+##################################################      ###########################
+# How to create image files from interactive maps       # ! NO USE FOR RMD FILE ! #
+##################################################      ###########################
+
+webshot::install_phantomjs()
+library(mapview)
+library(webshot)
+
+m <- leaflet() %>%
+  addTiles() %>%
+  addCircles(data = station_ranking_top10,
+             lng = station_ranking_top10$start.station.longitude,
+             lat = station_ranking_top10$start.station.latitude,
+             popup = (citibike_weather_df$start.station.name)) %>%
+  setView(-74.00, 40.71, zoom = 12) %>%
+  addProviderTiles("CartoDB.Voyager")
+
+m
+
+## 'leaflet' objects (image above)
+mapshot(m, file = "most_popular_stations.png")
+
+image <- image_read("most_popular_stations.png")
+image_crop(image, "992x446")
+
+knitr::include_graphics('most_popular_stations.png')
+
+
