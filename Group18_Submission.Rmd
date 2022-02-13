@@ -24,11 +24,11 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 
 Noel Rinke and Yanik Baumann are two students at the Lucerne University of Applied Sciences and Arts studying for a Master's degree in Applied Information and Data Science. Our assignment represents a complete data analysis where we use a wide variety of R functionalities. For this analysis, we use data from Citibike New York. 
 
-## Background Information on New York's Bike-Sharing Scheme (work-in-progress)
+## Background Information on New York City's Bike-Sharing Scheme
 
-The bike sharing scheme Citi Bike began operating in New York City in 2013 [@LyftInc22]. With 19000 bikes and more than 1000 stations (as of 2022), Citi Bike is the largest bike-sharing service in the United States, making it an integral part of New York City's transport network [@LyftInc22]. The bike-sharing scheme consists of a fleet of specifically engineered, long-lasting bicycles that are connected to a network of stations which span with Manhattan, Brooklyn, Queens and the Bronx four of the five boroughs of New York City as well as Jersey City and Hoboken. Citi Bike provides an app which allows its customers to unlock bikes, see real-time station information, and personalized data such as kilometers traveled and calories burnt.
+New York City's bike-sharing scheme *Citi Bike* began operating in 2013 [@LyftInc22]. With 19'000 bikes and more than 1'000 stations (as of 2022), Citi Bike is an integral part of New York City's transport network and the largest bike-sharing service in the United States [@LyftInc22]. The bike-sharing scheme consists of a fleet of specifically engineered bicycles that are connected to a network of stations which span with Manhattan, Brooklyn, Queens and the Bronx four of New York City's five boroughs - besides Jersey City and Hoboken.
 
-As the New York Times [-@Hu2021] reported "*traffic has come roaring back in New York City after largely disappearing at the height of the corona virus pandemic*". While cars contribute to traffic congestion, greenhouse gas emissions and global warming, bicycles offer an environmentally friendlier, healthier, more economical and less space-consuming transportation alternative.
+The popularity and rise of bike sharing services stems from the benefits such services provide: While cars contribute to traffic congestion, greenhouse gas emissions and global warming, bicycles offer an environmentally friendlier, healthier, more economical and less space-consuming transportation alternative.
 
 
 ## Aim of the Analysis
@@ -38,47 +38,45 @@ blabla
 
 ## Datasets used
 
-The subsequent analysis required two different datasets: Citi Bike ride-sharing data and weather data.
+In order to obtain the intended insights, the analysis required two different datasets: Citi Bike ride-sharing data and weather data.
 
-As mentioned above, the data with records on the bicycle rides was obtained from Citi Bike which provides all datasets since the service began operating in 2013. To represent each season, four different data sets were downloaded for January, April, July, and December, and an equal sample size was drawn from each month in the data preparation section. In addition, it is important to note that the Covid 19 pandemic was thought to be a potential confounding factor, so we specifically chose to use data from 2019, which predated the pandemic.
+The data with records on the bicycle rides was obtained from Citi Bike which provides all datasets since the service began operating in 2013. To represent each season, four different data sets were downloaded for January, April, July, and December, and an equal sample size was drawn from each month in the data preparation section. In addition, it is important to note that the Covid 19 pandemic was thought to be a potential confounding factor, so we specifically chose to use data from 2019, which predated the pandemic.
 
 The second dataset used stems from the National Oceanic and Atmospheric Administration which is part of the U.S. Department of Commerce. The dataset includes weather data measured at the weather station with the number GHCND:USW00094728 which corresponds to New York City's Central Park. Important to note is that the weather data provided does not include measurements per hour, but per day.
 
 
 # Installation of Packages
 
-```{r, echo=TRUE, warning=FALSE, message=FALSE}
+```{r packages, echo=TRUE, warning=FALSE, message=FALSE}
 
-require(knitr)          # engine for dynamic report generation
-require(dplyr)          # for data manipulation
+require(knitr)        # Engine for dynamic report generation
+require(dplyr)        # For data manipulation
 require(tidyr)
-require(broom)          # for summarizing statistical model objects in tidy tibbles
-require(lubridate)      # for working with date-times and time-spans
-require(skimr)          # for summary statistic
-require(ggplot2)        # tidyverse data visualization package
-require(ggeasy)         # Provides a series of aliases to commonly used but difficult to remember 'ggplot2' sequences
-require(ggthemes)       # extra themes, geoms, and scales for 'ggplot2'
-require(scales)         # internal scaling infrastructure to ggplot2 and its functions
-require(maps)           # for computing the areas of regions in a projected map
-require(ggmap)          # to visualize spatial data and models on top of static maps from various online sources (i.e. GMaps or Stamen)
-require(leaflet)        # for interactive maps
-require(leaflet.extras) # add-on to the 'leaflet' package by providing extra functionality
-require(st)
-require(sf)             # standardized way to encode spatial vector data
-require(rgdal)
-require(RColorBrewer)
+require(broom)        # For summarizing statistical model objects in tidy tibbles
+require(lubridate)    # For working with date-times and time-spans
+require(skimr)        # For summary statistic
+require(ggplot2)      # tidyverse data visualization package
+require(ggeasy)       # Series of aliases to commonly used but difficult to remember 
+                        # 'ggplot2' sequences
+require(ggthemes)     # Extra themes, geoms, and scales for 'ggplot2'
+require(scales)       # Internal scaling infrastructure to ggplot2 and its functions
+require(maps)         # For computing the areas of regions in a projected map
+require(ggmap)        # To visualize spatial data & models on top of static maps
+require(RColorBrewer) # Color palette
 
 ```
 
 
 # Data Preparation
 
-This chapter describes how to import and prepare the data sets.
+This chapter describes the import and the preparation of the data sets.
 
 
 ## Data Import
 
-```{r}
+The ride-sharing data provided by Citi Bike corresponds to many millions of observations since 2013. We decided to reduce the size of the data used to a minimum in order to ensure high performance in the analysis. The months of January, April, July and October for the rides of the year 2019 as well as the weather data for the whole year 2019 are imported below.
+
+```{r data_import_rides}
 citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
 
@@ -93,16 +91,15 @@ citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 
 ```
 
-```{r}
+```{r data_import_weather}
 nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv'))
 
 ```
 
-
 ## Taking Samples
 
-```{r}
+```{r samples}
 citibike_jan19_sample <- sample_n(citibike_jan19, size=1000)
 citibike_apr19_sample <- sample_n(citibike_apr19, size=1000)
 citibike_jul19_sample <- sample_n(citibike_jul19, size=1000)
@@ -110,7 +107,16 @@ citibike_oct19_sample <- sample_n(citibike_oct19, size=1000)
 
 ```
 
-## Adding Season to the data sets
+## Merge of the Datasets and Creation of derived Variables
+
+The following chunks of code show how the data sets were joined together, how additionally required variables were created and the dataset cleaned by removing irrelevant variables.
+
+| **Created additional variables**                         | **Removed variables**                                         |
+|:---------------------------------------------------------|:--------------------------------------------------------------|
+| *season*, *DATE*, *meantemp*, *raingrouped*,             | *TSUN*, *TAVG*, *AWND*                                        |
+| *Snow_yesno*, *weekdays*, *daytime*, *tripduration_cat*  |                                                               |
+
+### Variable Season
 
 ```{r}
 citibike_jan19_sample <- cbind(citibike_jan19_sample, season='winter')
@@ -120,39 +126,43 @@ citibike_oct19_sample <- cbind(citibike_oct19_sample, season='autumn')
 
 ```
 
-## Merging the Datasets from Citibike
+### Merging the Citibike Datasets
 
 ```{r}
 citibike_merged_2019 <- rbind(citibike_jan19_sample, citibike_apr19_sample, citibike_jul19_sample, citibike_oct19_sample)
 
 ```
 
-## Adding Date-column
+### Adding a seperate Date-Column
 
 ```{r}
 citibike_merged_2019$DATE <- substr(citibike_merged_2019$starttime, 1, 10)
 
 ```
 
-## Cleaning the weather data set
+### Cleaning the Weather Dataset
+
+Variables that were considered irrelevant for the analysis were deleted.
 
 ```{r}
 nyc_weather_cleaned <- subset(nyc_weather_2019, select = -c(TSUN, TAVG, AWND))
 
 ```
 
-## Join citibike_merged_2019 and the nyc_weather_cleaned
+### Joining the Datasets
 
 ```{r}
 citi_cb <- left_join(citibike_merged_2019, nyc_weather_cleaned, by='DATE')
 ```
 
-## Calculate average temperature
+### Calculate Average Temperature
+
 ```{r}
 citi_cb$meantemp <- (citi_cb$TMAX + citi_cb$TMIN) / 2
 ```
 
-## Grouping rain intensity
+### Grouping Rain Intensity
+
 ```{r}
 citi_cb$raingrouped <- ifelse(citi_cb$PRCP == 0, 'no rain',
                        ifelse(citi_cb$PRCP > 0   & citi_cb$PRCP <=2.0, 'weak',
@@ -160,12 +170,14 @@ citi_cb$raingrouped <- ifelse(citi_cb$PRCP == 0, 'no rain',
                        ifelse(citi_cb$PRCP >10.0 & citi_cb$PRCP <=30.0, 'heavy', 'intense'))))
 ```
 
-## Snow Yes/No
+### Creating the Variable Snow Yes/No
+
 ```{r}
 citi_cb$Snow_yesno <- ifelse(citi_cb$SNOW > 0, 'yes', 'no')
 ```
 
-## Getting the weekdays
+### Getting the weekdays
+
 ```{r}
 # Weekdays in english
 Sys.setlocale("LC_TIME", "English")
@@ -178,7 +190,8 @@ citi_cb$weekday <- factor(citi_cb$weekday,levels = c("Monday","Tuesday","Wednesd
                                                      "Thursday","Friday","Saturday","Sunday"))
 ```
 
-## Getting Time and Daytimes
+### Getting Time and Daytimes
+
 ```{r}
 citi_cb$onlytime <- as.POSIXct(substr(citi_cb$starttime, 12, 19), format="%H:%M:%S")
 
@@ -201,7 +214,8 @@ citi_cb$daytime  <- ifelse(citi_cb$onlytime <= as.POSIXct("06:00:00",format="%H:
 citi_cb$daytime <- factor(citi_cb$daytime,levels = c("morning","afternoon","evening","night"))
 ```
 
-## Setting trip duration groups
+### Setting trip duration groups
+
 ```{r}
 citi_cb$tripduration_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
                             ifelse(citi_cb$tripduration >300 & citi_cb$tripduration <=900, '5 to 15 min',
@@ -213,7 +227,7 @@ citi_cb$tripduration_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
 
 ## Outlier Detection and Elimination
 
-Outliers can have a large impact on the statistics derived from the dataset, which is why they need to be handled or at least be aware of or at least acknowledged. The variable *tripduration* consists of the time (in seconds) a customer rents a bike from Citi Bike until the bike is returned to a station with an empty dock. Therefore, there can be both natural and non-natural outliers. While the non-natural outliers are due to measurement errors (e.g. system failures), natural outliers could be due to customers not returning the rented bike, customers not being able to return the rented bike until the next day, or similar.
+Outliers can have a large impact on the statistics derived from the dataset, which is why they need to be handled or at least acknowledged. The variable *tripduration* consists of the time (in seconds) a customer rents a bike from Citi Bike until the bike is returned to a station with an empty dock. Therefore, there can be both natural and non-natural outliers. While the non-natural outliers are due to measurement errors (e.g. system failures), natural outliers could be due to customers not returning the rented bike, customers not being able to return the rented bike until the next day, or similar.
 
 ```{r}
 #Deactivate scientific notation
@@ -236,9 +250,8 @@ boxplot(citi_cb$tripduration, horizontal=TRUE)
 
 # Analysis
 
-
-
 ## Data Inspection
+
 ```{r}
 # Alternative to summary to get an overview of the data frame
 skim(citi_cb)
@@ -246,51 +259,59 @@ skim(citi_cb)
 ```
 
 ```{r}
-# The 10 most popular stations
-citi_cb %>% 
-  group_by(start.station.name) %>% 
-  summarise(count=n())
-
-most_popular <- data.frame(citi_cb %>%
-  group_by(start.station.name) %>% 
-  summarize(count=n()) %>% 
-  arrange(desc(count)))
-
-most_popular_stations <- most_popular %>%
-  left_join(citi_cb, by = "start.station.name") %>%
-  select(start.station.name, count, start.station.longitude, start.station.latitude)
-
-station_ranking_top10 <- head(distinct(most_popular_stations),10)
-
-station_ranking_top10 %>%
-  select(start.station.name, count)
-
-```
-
-```{r}
-# The 10 least popular stations
-least_popular <- data.frame(citi_cb %>%
-                             group_by(start.station.name) %>% 
-                             summarize(count=n()) %>% 
-                             arrange(desc(count)))
-
-least_popular_stations <- least_popular %>%
-  left_join(citi_cb, by = "start.station.name") %>%
-  select(start.station.name, count, start.station.longitude, start.station.latitude)
-
-station_ranking_least10 <- head(distinct(least_popular_stations),10)
-
-station_ranking_least10 %>%
-  select(start.station.name, count)
+# The 10 most popular start stations
+start.station.rank.t10 <- data.frame(citi_cb %>%
+                             group_by(start.station.name) %>%
+                             summarize(count=n()) %>%
+                             arrange(desc(count))) %>%
+                             head(10)
+start.station.rank.t10
 ```
 
 
-## Frequencies
-
-
-## Density Map: Identifiying the most and least popular Districts
 
 ```{r}
+# The 10 least popular start stations
+start.station.rank.l10 <- data.frame(citi_cb %>%
+                              group_by(start.station.name) %>% 
+                              summarize(count=n()) %>% 
+                              arrange(count)) %>% 
+                              head(10)
+
+start.station.rank.l10
+```
+
+```{r}
+# The 10 most popular end stations
+end.station.rank.t10 <- data.frame(citi_cb %>%
+                             group_by(end.station.name) %>%
+                             summarize(count=n()) %>%
+                             arrange(desc(count))) %>% 
+                             head(10)
+
+end.station.rank.t10
+
+```
+
+
+
+```{r}
+# The 10 least popular end stations
+end.station.rank.l10 <- data.frame(citi_cb %>%
+                              group_by(end.station.name) %>% 
+                              summarize(count=n()) %>% 
+                              arrange(count)) %>% 
+                              head(10)
+
+end.station.rank.l10
+
+```
+
+## Identifiying the Popularity of different Areas in New York City
+
+The map shows by density how strongly the concentration of started bike rentals is distributed across the city. The denser the colour, the higher the concentration of started rides. 
+
+```{r, warning=FALSE, message=FALSE}
 # Define longitudes and latitudes for map
 bbox <- c(left = -74.1, bottom = 40.65, right = -73.875, top = 40.825)
 
@@ -303,13 +324,29 @@ ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
     bins = 18,
     geom = "polygon") +
   scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu")) + # library RColorbrewer
-  ggtitle(label = "Density Map") +
+  ggtitle(label = "Density Map: Start Station") +
   theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Longitude") +
   ylab("Latitude")
   
 ```
 
+```{r, warning=FALSE, message=FALSE}
+# Create density map
+ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
+  stat_density_2d(
+    data = citi_cb, 
+    aes(x=end.station.longitude, y=end.station.latitude, fill= ..level..),
+    alpha = .15,
+    bins = 18,
+    geom = "polygon") +
+  scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu")) + # library RColorbrewer
+  ggtitle(label = "Density Map: End Stations") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Longitude") +
+  ylab("Latitude")
+  
+```
 
 
 ## Influence of Meteorological Factors
@@ -333,16 +370,12 @@ cor(x=citi_cb$meantemp, y=citi_cb$tripduration, method="spearman")
 ```
 
 
-
-
-
 ### Influence of Precipitation
 
 ```{r}
 # How strong is the effect of precipitation on the number of trips?
-
-# Calculate for each category of precipitation how often it rained
-rain_cat_freq <- citi_cb %>%
+# Calculation for each category of precipitation how often it rained
+rain_cat_freq <- citi_cb %>% 
   group_by(raingrouped) %>%
   summarise(counts = n())
 
@@ -373,7 +406,6 @@ cor_tripduration_precipitation <- round(cor(x=citi_cb$PRCP,
 print(paste0("Interpretation: For every mm of precipitation, the time a customer rents a bike changes by ", cor_tripduration_precipitation, " seconds."))
 
 ```
-
 
 
 ### Influence of Snowfall and Snow Depth
