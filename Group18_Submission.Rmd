@@ -47,7 +47,7 @@ The second dataset used stems from the National Oceanic and Atmospheric Administ
 
 # Installation of Packages
 
-```{r packages, echo=TRUE, warning=FALSE, message=FALSE}
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
 
 require(knitr)        # Engine for dynamic report generation
 require(dplyr)        # For data manipulation
@@ -74,9 +74,9 @@ This chapter describes the import and the preparation of the data sets.
 
 ## Data Import
 
-The ride-sharing data provided by Citi Bike corresponds to many millions of observations since 2013. We decided to reduce the size of the data used to a minimum in order to ensure high performance in the analysis. The months of January, April, July and October for the rides of the year 2019 as well as the weather data for the whole year 2019 are imported below.
+The ride-sharing data provided by Citi Bike includes many millions of observations since 2013. We decided to reduce the size of the data used to a minimum in order to ensure high performance in the analysis. The months of January, April, July and October for the rides of the year 2019 as well as the weather data for the whole year 2019 are imported below.
 
-```{r data_import_rides}
+```{r citibike-import}
 citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
 
@@ -91,7 +91,7 @@ citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 
 ```
 
-```{r data_import_weather}
+```{r weather-import}
 nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv'))
 
@@ -111,14 +111,14 @@ citibike_oct19_sample <- sample_n(citibike_oct19, size=1000)
 
 The following chunks of code show how the data sets were joined together, how additionally required variables were created and the dataset cleaned by removing irrelevant variables.
 
-| **Created additional variables**                         | **Removed variables**                                         |
-|:---------------------------------------------------------|:--------------------------------------------------------------|
-| *season*, *DATE*, *meantemp*, *raingrouped*,             | *TSUN*, *TAVG*, *AWND*                                        |
-| *Snow_yesno*, *weekdays*, *daytime*, *tripduration_cat*  |                                                               |
+| **Created additional variables**                         | **Removed variables**                                    |
+|:---------------------------------------------------------|:---------------------------------------------------------|
+| *season*, *DATE*, *meantemp*, *raingrouped*,             | *TSUN*, *TAVG*, *AWND*                                   |
+| *Snow_yesno*, *weekdays*, *daytime*, *tripduration_cat*  |                                                          |
 
 ### Variable Season
 
-```{r}
+```{r new-var-season}
 citibike_jan19_sample <- cbind(citibike_jan19_sample, season='winter')
 citibike_apr19_sample <- cbind(citibike_apr19_sample, season='spring')
 citibike_jul19_sample <- cbind(citibike_jul19_sample, season='summer')
@@ -258,7 +258,11 @@ skim(citi_cb)
 
 ```
 
-```{r}
+## Most and least used Start and End Stations
+
+An important factor for Lyft - the provider of Citi Bike - could be to track the most and least used stations. Stations that are used the most could provide the opportunity to increase the number of docking stations, and the stations where neither many customers start nor finish their ride could be relocated.
+
+```{r, echo=FALSE, results='hide'}
 # The 10 most popular start stations
 start.station.rank.t10 <- data.frame(citi_cb %>%
                              group_by(start.station.name) %>%
@@ -268,9 +272,7 @@ start.station.rank.t10 <- data.frame(citi_cb %>%
 start.station.rank.t10
 ```
 
-
-
-```{r}
+```{r, echo=FALSE, results='hide'}
 # The 10 least popular start stations
 start.station.rank.l10 <- data.frame(citi_cb %>%
                               group_by(start.station.name) %>% 
@@ -281,7 +283,7 @@ start.station.rank.l10 <- data.frame(citi_cb %>%
 start.station.rank.l10
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide'}
 # The 10 most popular end stations
 end.station.rank.t10 <- data.frame(citi_cb %>%
                              group_by(end.station.name) %>%
@@ -293,9 +295,7 @@ end.station.rank.t10
 
 ```
 
-
-
-```{r}
+```{r, echo=FALSE, results='hide'}
 # The 10 least popular end stations
 end.station.rank.l10 <- data.frame(citi_cb %>%
                               group_by(end.station.name) %>% 
@@ -306,6 +306,7 @@ end.station.rank.l10 <- data.frame(citi_cb %>%
 end.station.rank.l10
 
 ```
+
 
 ## Identifiying the Popularity of different Areas in New York City
 
