@@ -258,6 +258,13 @@ skim(citi_cb)
 
 ```
 
+```{r}
+skim(citi_cb) %>%
+  dplyr::select(skim_type, skim_variable, n_missing)
+
+```
+
+
 ## Most and least used Start and End Stations
 
 An important factor for Lyft - the provider of Citi Bike - could be to track the most and least used stations. Stations that are used the most could provide the opportunity to increase the number of docking stations, and the stations where neither many customers start nor finish their ride could be relocated.
@@ -317,7 +324,7 @@ The map shows by density how strongly the concentration of started bike rentals 
 bbox <- c(left = -74.1, bottom = 40.65, right = -73.875, top = 40.825)
 
 # Create density map
-ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
+density_start <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
   stat_density_2d(
     data = citi_cb, 
     aes(x=start.station.longitude, y=start.station.latitude, fill= ..level..),
@@ -334,7 +341,7 @@ ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
 
 ```{r, warning=FALSE, message=FALSE}
 # Create density map
-ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
+density_end <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
   stat_density_2d(
     data = citi_cb, 
     aes(x=end.station.longitude, y=end.station.latitude, fill= ..level..),
@@ -347,6 +354,12 @@ ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
   xlab("Longitude") +
   ylab("Latitude")
   
+```
+
+```{r}
+library(gridExtra)
+
+grid.arrange(density_start, density_end, ncol=2)
 ```
 
 
