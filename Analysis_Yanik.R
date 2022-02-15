@@ -57,7 +57,11 @@ citibike_weather_df$daytime <- factor(citibike_weather_df$daytime,levels = c("mo
 
 # Histogram
 ggplot(data.frame(citibike_weather_df$daytime), aes(x=citibike_weather_df$daytime)) +
-  geom_bar()
+  geom_bar(fill='#2980B9') +
+  theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) +
+  theme_fivethirtyeight()+
+  xlab("Daytime") +
+  ylab("Number of rides")
 
 #Hourly Distribution of Rides
 
