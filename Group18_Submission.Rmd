@@ -457,7 +457,7 @@ print(paste0("Interpretation: For every mm of precipitation, the time a customer
 
 ### Influence of Snowfall and Snow Depth
 
-### Influence of temperature on rides per Day
+### Influence of temperature on tripduration (in seconds)
 
 ```{r}
 model <- aov(tripduration ~ meantemp + PRCP, data = citibike_weather_df)
