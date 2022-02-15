@@ -77,22 +77,22 @@ This chapter describes the import and the preparation of the data sets.
 The ride-sharing data provided by Citi Bike includes many millions of observations since 2013. We decided to reduce the size of the data used to a minimum in order to ensure high performance in the analysis. The months of January, April, July and October for the rides of the year 2019 as well as the weather data for the whole year 2019 are imported below.
 
 ```{r citibike-import}
-citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+citibike_jan19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
 
-citibike_apr19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+citibike_apr19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201904-citibike-tripdata.csv'))
 
-citibike_jul19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+citibike_jul19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201907-citibike-tripdata.csv'))
 
-citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+citibike_oct19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201910-citibike-tripdata.csv'))
 
 ```
 
 ```{r weather-import}
-nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv'))
 
 ```
@@ -252,9 +252,55 @@ boxplot(citi_cb$tripduration, horizontal=TRUE)
 
 ## Data Inspection
 
+The first and the last few entries of the data have been checked to make sure the data is valid and complete.
+Also it is nice to get an overview of the different variables of the dataset.
+
+```{r}
+# Alternative to summary to get an overview of the data frame
+head(citi_cb)
+
+```
+
+```{r}
+# Alternative to summary to get an overview of the data frame
+tail(citi_cb)
+
+```
+
+```{r}
+# Alternative to summary to get an overview of the data frame
+str(citi_cb)
+
+```
+
 ```{r}
 # Alternative to summary to get an overview of the data frame
 skim(citi_cb)
+
+```
+
+## Histogramm Daytime
+
+```{r}
+ggplot(data.frame(citibike_weather_df$daytime), aes(x=citibike_weather_df$daytime)) +
+  geom_bar(fill='#2980B9') +
+  theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) +
+  theme_fivethirtyeight()+
+  xlab("Daytime") +
+  ylab("Number of rides")
+
+```
+
+
+## Hourly Distribution of Rides
+
+```{r}
+citi_cb %>% ggplot(aes(x=hour,fill=factor(weekday))) + 
+  geom_density(alpha=.2) +
+  facet_wrap(~weekday,ncol=1) +
+  theme_fivethirtyeight() +
+  theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) + 
+  ggtitle(expression(atop("Hourly Distribution of Rides")))
 
 ```
 
