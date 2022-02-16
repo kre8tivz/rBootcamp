@@ -33,7 +33,7 @@ The popularity and rise of bike sharing services stems from the benefits such se
 
 ## Aim of the Analysis
 
-blabla
+This analysis will show when the most trips are made, whether rain has an influence on the number of trips and where the Citibikes are used most. 
 
 
 ## Datasets used
@@ -295,7 +295,8 @@ ggplot(data.frame(citibike_weather_df$daytime), aes(x=citibike_weather_df$daytim
 ## Hourly Distribution of Rides
 
 ```{r}
-citi_cb %>% ggplot(aes(x=hour,fill=factor(weekday))) + 
+citi_cb %>% ggplot(aes(x=hour,fill=factor(weekday))) +
+  scale_fill_manual(values = c('#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9')) +
   geom_density(alpha=.2) +
   facet_wrap(~weekday,ncol=1) +
   theme_fivethirtyeight() +
@@ -454,18 +455,20 @@ print(paste0("Interpretation: For every mm of precipitation, the time a customer
 
 ```
 
-
-### Influence of Snowfall and Snow Depth
-
 ### Influence of temperature on tripduration (in seconds)
+
+Using the analysis of variance, we would like to see whether the factors of average temperature and rain have an influence on the length of a trip.
 
 ```{r}
 model <- aov(tripduration ~ meantemp + PRCP, data = citibike_weather_df)
 summary(model)
 ```
 
+
 # Results
 
+Most rides are done in the afternoon. During the week, peaks are measured between 08:00 - 09:00 and between 17:00 - 18:00. On weekends, the busiest time is between 11:00 - 16:00. Citibike New York is especially popular in the Manhattan borough. 
+Rain has a strong influence on the number of rides per day. When there is no rain, the Citibikes are used much more often. However, the rain has no significant influence on the duration of the trips. 
 
 # Lessons Learned
 

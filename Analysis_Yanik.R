@@ -66,7 +66,10 @@ ggplot(data.frame(citibike_weather_df$daytime), aes(x=citibike_weather_df$daytim
 #Hourly Distribution of Rides
 
 citibike_weather_df %>% ggplot(aes(x=hour,fill=factor(weekday))) + 
-  geom_density(alpha=.2)+facet_wrap(~weekday,ncol=1)+theme_fivethirtyeight()+
+  scale_fill_manual(values = c('#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9'))+
+  geom_density(alpha=.2)+
+  theme_few()+
+  facet_wrap(~weekday,ncol=1)+
   theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) + 
   ggtitle(expression(atop("Hourly Distribution of Rides",atop("Weekday Peaks during Morning Rush (8am-9am) and Afternoon Rush (5pm-6pm)"))))
 
