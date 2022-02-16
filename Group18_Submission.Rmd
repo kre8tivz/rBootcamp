@@ -77,21 +77,21 @@ This chapter describes the import and the preparation of the data sets.
 The ride-sharing data provided by the company Lyft includes many millions of observations since 2013. We decided to reduce the size of the data used to a minimum in order to ensure high performance in the analysis. The months of January, April, July and October for the rides of the year 2019 as well as the weather data for the whole year 2019 are imported below.
 
 ```{r citibike-import}
-citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+citibike_jan19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
 
-citibike_apr19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+citibike_apr19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201904-citibike-tripdata.csv'))
 
-citibike_jul19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+citibike_jul19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201907-citibike-tripdata.csv'))
 
-citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+citibike_oct19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201910-citibike-tripdata.csv'))
 ```
 
 ```{r weather-import}
-nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
+nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv'))
 ```
 
