@@ -341,19 +341,26 @@ end.station.rank <- data.frame(citi_cb %>%
 station_usage <- left_join(x=start.station.rank, y=end.station.rank, by=c("start.station.name"="end.station.name"))
 
 # Check if there are start or end stations which were not used
-sum(is.na(station_usage$count.start))
-sum(is.na(station_usage$count.end))
+na_check_start_bef <- sum(is.na(station_usage$count.start))
+na_check_end_bef <- sum(is.na(station_usage$count.end))
+
+print(paste0("There are ", na_check_start_bef, " start stations with NA values and ", na_check_end_bef, " end stations with NA values."))
 
 # Replace all NAs with 0 (Stations which no one used should be shown as zero for the subsequent sum)
 station_usage <- station_usage %>% 
   mutate_all(~replace(., is.na(.), 0))
 
 # Check if the NA values were successfully replaced
-sum(is.na(station_usage$count.start))
-sum(is.na(station_usage$count.end))
+na_check_start_aft <- sum(is.na(station_usage$count.start))
+na_check_end_aft <- sum(is.na(station_usage$count.end))
+
+if (na_check_start_aft != 0){
+  print(paste0("After replacement, there are ", na_check_start_aft, " start stations with NA values and ", na_check_end_aft, " end stations with NA values.")) 
+} else{
+  print("Successfully replaced NA values with 0.")}
 
 # Create a new column which shows the combined number of bikes rented and returned
-station_usage$station.count.comb <- rowSums(station_usage[, c("count.start", "count.end")]) 
+station_usage$station.count.comb <- rowSums(station_usage[, c("count.start", "count.end")])
 
 # Order the dataframe by the combined number (from largest to smallest) to get a ranking
 station_usage <- station_usage[order(-station_usage$station.count.comb),]
@@ -396,12 +403,12 @@ top10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                 color = 'red', size = 2, alpha = 0.5) +
                 theme_update(plot.title = element_text(hjust = 0.5)) +
                 ggtitle("The 10 most used Stations") +
-                theme(axis.line = element_blank(),
-                      axis.text = element_blank(),
-                      axis.ticks = element_blank(),
+                theme(axis.line = element_blank(),    # Remove axis line
+                      axis.text = element_blank(),    # Remove axis text
+                      axis.ticks = element_blank(),   # Remove axis ticks
                       plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), 'lines')) +
-                xlab('') +
-                ylab('')
+                xlab('') +                            # Remove text on x-axis
+                ylab('')                              # Remove text on y-axis
 
 least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                 geom_point(data=least10_coord, 
@@ -414,8 +421,8 @@ least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                       axis.text = element_blank(),    # Remove axis text
                       axis.ticks = element_blank(),   # Remove axis ticks
                       plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), 'lines')) +
-                xlab('') +
-                ylab('')
+                xlab('') +                            # Remove text on x-axis
+                ylab('')                              # Remove text on y-axis
 
 # Show the two maps side by side
 grid.arrange(top10_map, least10_map, ncol=2)
