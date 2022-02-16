@@ -51,20 +51,19 @@ The second data set used stems from the National Oceanic and Atmospheric Adminis
 
 require(knitr)        # Engine for dynamic report generation
 require(dplyr)        # For data manipulation
-require(tidyr)
+require(tidyr)        # Provides various important functions that can be used for Data Cleaning
 require(broom)        # For summarizing statistical model objects in tidy tibbles
 require(lubridate)    # For working with date-times and time-spans
 require(skimr)        # For summary statistic
 require(ggplot2)      # tidyverse data visualization package
-require(ggeasy)       # Series of aliases to commonly used but difficult to remember 
-                        # 'ggplot2' sequences
+require(ggeasy)       # Series of aliases to commonly used but diff. to remember ggplot2 seq.
 require(ggthemes)     # Extra themes, geoms, and scales for 'ggplot2'
 require(scales)       # Internal scaling infrastructure to ggplot2 and its functions
 require(maps)         # For computing the areas of regions in a projected map
 require(ggmap)        # To visualize spatial data & models on top of static maps
 require(RColorBrewer) # Color palette
-library(gridExtra)
-library(data.table)
+library(gridExtra)    # Provides a number of user-level functions to work with "grid" graphics
+library(data.table)   # Widely used for fast aggregation of large datasets
 ```
 
 
@@ -113,6 +112,8 @@ The following chunks of code show how the data sets were joined together, how ad
 |:---------------------------------------------------------|:---------------------------------------------------------|
 | *season*, *DATE*, *meantemp*, *raingrouped*,             | *TSUN*, *TAVG*, *AWND*, *STATION*, *NAME*                |
 | *Snow_yesno*, *weekdays*, *daytime*, *tripdur_cat*       |                                                          |
+
+Table: Overview of created and removed variables
 
 ### Creating the Variable Season
 
@@ -235,25 +236,21 @@ Also it is nice to get an overview of the different variables of the dataset.
 ```{r, results='asis'}
 # Alternative to summary to get an overview of the data frame
 # head(citi_cb)
-
 ```
 
 ```{r}
 # Alternative to summary to get an overview of the data frame
 # tail(citi_cb)
-
 ```
 
 ```{r}
 # Alternative to summary to get an overview of the data frame
 str(citi_cb)
-
 ```
 
 ```{r}
 # Alternative to summary to get an overview of the data frame
 skim(citi_cb)
-
 ```
 
 ## Outlier Detection and Elimination
@@ -261,7 +258,7 @@ skim(citi_cb)
 Outliers can have a large impact on the statistics derived from the dataset, which is why they need to be handled or at least acknowledged. The variable *tripduration* consists of the time (in seconds) a customer rents a bike from Citi Bike until the bike is returned to a station with an empty dock. Therefore, there can be both natural and non-natural outliers. While the non-natural outliers are due to measurement errors (e.g. system failures), natural outliers could be due to customers not returning the rented bike, customers not being able to return the rented bike until the next day, or similar. A boxplot is created to check the distribution of the variable:
 
 ```{r, fig.height=3.75}
-#Deactivate scientific notation
+# Deactivate scientific notation
 options(scipen = 999)
 
 # Check if the variable trip duration has outliers
@@ -288,7 +285,6 @@ ggplot(data.frame(citi_cb$tripdur_cat), aes(x=citi_cb$tripdur_cat)) +
   theme_fivethirtyeight()+
   xlab("Trip Duration Category") +
   ylab("Number of rides")
-
 ```
 
 ```{r}
@@ -307,7 +303,6 @@ ggplot(data.frame(citi_cb$daytime), aes(x=citi_cb$daytime)) +
   theme_fivethirtyeight()+
   xlab("Daytime") +
   ylab("Number of rides")
-
 ```
 
 
@@ -320,7 +315,6 @@ citi_cb %>% ggplot(aes(x=hour,fill=factor(weekday))) +
   theme_fivethirtyeight() +
   theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) + 
   ggtitle(expression(atop("Hourly Distribution of Rides")))
-
 ```
 
 ## Most and least used Start and End Stations
@@ -367,11 +361,11 @@ station_usage <- station_usage[order(-station_usage$station.count.comb),]
 setnames(station_usage, old = c('start.station.name','count.start', 'count.end', 'station.count.comb'), new = c('Station Name','Bikes rented', 'Bikes returned', 'Total'))
 
 # Check the 10 most and least used stations
-kable(head(station_usage, 10))
-kable(tail(station_usage, 10))
+kable(head(station_usage, 10), caption="Most used stations")
+kable(tail(station_usage, 10), caption="Least used stations")
 ```
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 # Create variables with the most and least used stations
 top10 <- head(station_usage, 10)
 least10 <- tail(station_usage, 10)
@@ -384,7 +378,6 @@ top10_coord <- top_10_coord %>%
 
 top10_coord <- distinct(top10_coord)
 
-
 # Here we add the coordinates to our dataframe
 least10_coord <- left_join(x=least10, y=citi_cb, by=c("Station Name"="start.station.name"))
 
@@ -393,7 +386,7 @@ least10_coord <- least10_coord %>%
 
 least10_coord <- distinct(least10_coord)
 
-
+# Set longitudes and latitudes to define map tile for New York City
 bbox <- c(left = -74.1, bottom = 40.65, right = -73.875, top = 40.825)
 top10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                 geom_point(data=top10_coord, 
@@ -427,12 +420,14 @@ least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
 grid.arrange(top10_map, least10_map, ncol=2)
 ```
 
+The two maps show that the stations in Manhattan close to the Broadway are used the most. The stations in Brooklyn, on the other hand, are utilised very rarely. It is particularly important to mention here that this is based on a small sample. The analysis should be repeated with a larger number of data and over several periods of time.
+
 ## Identifiying the Popularity of different Areas in New York City
 
 The map shows by density how strongly the concentration of started bike rentals is distributed across the city. The denser the colour, the higher the concentration of started rides. 
 
 ```{r, warning=FALSE, message=FALSE}
-# Define longitudes and latitudes for map
+# Set longitudes and latitudes to define map tile for New York City
 bbox <- c(left = -74.1, bottom = 40.65, right = -73.875, top = 40.825)
 
 # Create density map for start stations
@@ -443,9 +438,9 @@ start_station_dens <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite
     alpha = .15,
     bins = 18,
     geom = "polygon") +
-  scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu")) +
+  scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu")) + # library RColorbrewer
   ggtitle(label = "Start Station Density") +
-  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(hjust = 0.5)) +          # Center the plot title
   xlab("Longitude") +
   ylab("Latitude")
 
@@ -459,7 +454,7 @@ end_station_dens <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")
     geom = "polygon") +
   scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu")) + # library RColorbrewer
   ggtitle(label = "End Station Density") +
-  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(hjust = 0.5)) +          # Center the plot title
   xlab("Longitude") +
   ylab("Latitude")  
 
@@ -468,14 +463,13 @@ end_station_dens
 ```
 
 
-
 ## Influence of Meteorological Factors
 
 
 ### Influence of Temperature
 
 ```{r}
-## How strong is the effect of the average daily temperature on the trip duration?
+# How strong is the effect of the average daily temperature on the trip duration?
 ggplot(citi_cb, aes(x=meantemp, y=tripduration)) +
   geom_point(color='#2980B9') + 
   geom_smooth(method=lm, se=FALSE, fullrange=TRUE, color='#2C3E50') +
@@ -511,7 +505,7 @@ ggplot(rain_cat_freq, aes(x = raingrouped, y = counts)) +
 ```
 
 ```{r, results="asis"}
-## How strong is the effect of precipitation on the trip duration?
+# How strong is the effect of precipitation on the trip duration?
 ggplot(citi_cb, aes(x=PRCP, y=tripduration)) +
   geom_point(color='#2980B9') + 
   geom_smooth(method=lm, se=FALSE, fullrange=TRUE, color='#2C3E50') +
