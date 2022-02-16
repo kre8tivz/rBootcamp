@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 
 # Introduction
 
-Noel Rinke and Yanik Baumann are two students at the Lucerne University of Applied Sciences and Arts studying for a Master's degree in Applied Information and Data Science. Our assignment represents a complete data analysis where we use a wide variety of R functionalities. For this analysis, we use data from Citibike New York. 
+Noel Rinke and Yanik Baumann are two students at the Lucerne University of Applied Sciences and Arts studying for a Master's degree in Applied Information and Data Science. Our assignment represents a complete data analysis where we use a wide variety of R functionalities. For this analysis, we use data from Citi Bike New York. 
 
 ## Background Information on New York City's Bike-Sharing Scheme
 
@@ -38,11 +38,11 @@ blabla
 
 ## Datasets used
 
-In order to obtain the intended insights, the analysis required two different datasets: Citi Bike ride-sharing data and weather data.
+In order to obtain the intended insights, the analysis required two different data sets: Citi Bike ride-sharing data and weather data.
 
-The data with records on the bicycle rides was obtained from Citi Bike which provides all datasets since the service began operating in 2013. To represent each season, four different data sets were downloaded for January, April, July, and December, and an equal sample size was drawn from each month in the data preparation section. In addition, it is important to note that the Covid 19 pandemic was thought to be a potential confounding factor, so we specifically chose to use data from 2019, which predated the pandemic.
+The data with records on the bicycle rides was obtained from Citi Bike [@CitiBikeNYC22] which provides all data sets since the service began operating in 2013. To represent each season, four different data sets were downloaded for January, April, July, and December, and an equal sample size was drawn from each month in the data preparation section. In addition, it is important to note that the COVID-19 pandemic was thought to be a potential confounding factor, so we specifically chose to use data from 2019, which predated the pandemic.
 
-The second dataset used stems from the National Oceanic and Atmospheric Administration which is part of the U.S. Department of Commerce. The dataset includes weather data measured at the weather station with the number GHCND:USW00094728 which corresponds to New York City's Central Park. Important to note is that the weather data provided does not include measurements per hour, but per day.
+The second data set used stems from the National Oceanic and Atmospheric Administration [@NOAA22] which is part of the U.S. Department of Commerce. The dataset includes weather data measured at the weather station with the number GHCND:USW00094728 which corresponds to New York City's Central Park. Important to note is that the weather data provided does not include measurements per hour, but per day.
 
 
 # Installation of Packages
@@ -63,7 +63,7 @@ require(scales)       # Internal scaling infrastructure to ggplot2 and its funct
 require(maps)         # For computing the areas of regions in a projected map
 require(ggmap)        # To visualize spatial data & models on top of static maps
 require(RColorBrewer) # Color palette
-
+library(gridExtra)
 ```
 
 
@@ -74,27 +74,25 @@ This chapter describes the import and the preparation of the data sets.
 
 ## Data Import
 
-The ride-sharing data provided by Citi Bike includes many millions of observations since 2013. We decided to reduce the size of the data used to a minimum in order to ensure high performance in the analysis. The months of January, April, July and October for the rides of the year 2019 as well as the weather data for the whole year 2019 are imported below.
+The ride-sharing data provided by the company Lyft includes many millions of observations since 2013. We decided to reduce the size of the data used to a minimum in order to ensure high performance in the analysis. The months of January, April, July and October for the rides of the year 2019 as well as the weather data for the whole year 2019 are imported below.
 
 ```{r citibike-import}
-citibike_jan19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
+citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
 
-citibike_apr19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
+citibike_apr19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201904-citibike-tripdata.csv'))
 
-citibike_jul19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
+citibike_jul19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201907-citibike-tripdata.csv'))
 
-citibike_oct19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
+citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201910-citibike-tripdata.csv'))
-
 ```
 
 ```{r weather-import}
-nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
+nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv'))
-
 ```
 
 ## Taking Samples
@@ -104,7 +102,6 @@ citibike_jan19_sample <- sample_n(citibike_jan19, size=1000)
 citibike_apr19_sample <- sample_n(citibike_apr19, size=1000)
 citibike_jul19_sample <- sample_n(citibike_jul19, size=1000)
 citibike_oct19_sample <- sample_n(citibike_oct19, size=1000)
-
 ```
 
 ## Merge of the Datasets and Creation of derived Variables
@@ -114,7 +111,7 @@ The following chunks of code show how the data sets were joined together, how ad
 | **Created additional variables**                         | **Removed variables**                                    |
 |:---------------------------------------------------------|:---------------------------------------------------------|
 | *season*, *DATE*, *meantemp*, *raingrouped*,             | *TSUN*, *TAVG*, *AWND*                                   |
-| *Snow_yesno*, *weekdays*, *daytime*, *tripduration_cat*  |                                                          |
+| *Snow_yesno*, *weekdays*, *daytime*, *tripdur_cat*  |                                                          |
 
 ### Variable Season
 
@@ -123,21 +120,18 @@ citibike_jan19_sample <- cbind(citibike_jan19_sample, season='winter')
 citibike_apr19_sample <- cbind(citibike_apr19_sample, season='spring')
 citibike_jul19_sample <- cbind(citibike_jul19_sample, season='summer')
 citibike_oct19_sample <- cbind(citibike_oct19_sample, season='autumn')
-
 ```
 
 ### Merging the Citibike Datasets
 
 ```{r}
 citibike_merged_2019 <- rbind(citibike_jan19_sample, citibike_apr19_sample, citibike_jul19_sample, citibike_oct19_sample)
-
 ```
 
 ### Adding a seperate Date-Column
 
 ```{r}
 citibike_merged_2019$DATE <- substr(citibike_merged_2019$starttime, 1, 10)
-
 ```
 
 ### Cleaning the Weather Dataset
@@ -146,7 +140,6 @@ Variables that were considered irrelevant for the analysis were deleted.
 
 ```{r}
 nyc_weather_cleaned <- subset(nyc_weather_2019, select = -c(TSUN, TAVG, AWND))
-
 ```
 
 ### Joining the Datasets
@@ -217,11 +210,16 @@ citi_cb$daytime <- factor(citi_cb$daytime,levels = c("morning","afternoon","even
 ### Setting trip duration groups
 
 ```{r}
-citi_cb$tripduration_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
-                            ifelse(citi_cb$tripduration >300 & citi_cb$tripduration <=900, '5 to 15 min',
-                            ifelse(citi_cb$tripduration >900 & citi_cb$tripduration <=1800, '15 to 30 min',
-                            ifelse(citi_cb$tripduration >1800 &
-                                   citi_cb$tripduration <=3600, '30 to 60 min','over 60 min'))))
+citi_cb$tripdur_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
+                       ifelse(citi_cb$tripduration >300 & 
+                              citi_cb$tripduration <=900, '5 to 15 min',
+                       ifelse(citi_cb$tripduration >900 & 
+                              citi_cb$tripduration <=1800, '15 to 30 min',
+                       ifelse(citi_cb$tripduration >1800 & 
+                              citi_cb$tripduration <=3600, '30 to 60 min', 'over 120 min'))))
+
+# To make sure that the categories are in ascending order
+citi_cb$tripdur_cat <- factor(citi_cb$tripdur_cat, levels = c("0 to 5 min", "5 to 15 min", "15 to 30 min", "30 to 60 min", "over 120 min"))
 ```
 
 
@@ -238,13 +236,27 @@ boxplot(citi_cb$tripduration, horizontal=TRUE)
 
 ```
 
-The boxplot reveals that the variable *tripduration* contains two extreme outliers - one of about 64 hours and the other of about 278 hours. The fact that bicycles are rented for more than 24 hours can be considered as important information, but renting for several days is not in line with the purpose and design of the service. Although the cause of these outliers is not known, we decided to remove all outliers above 12 hours.
+The boxplot reveals that the variable *tripduration* contains outliers. There are for example values above 50'000 seconds which corresponds to approximately 15 hours. The fact that bicycles are rented for such long time durations can be considered as interesting information, although it needs to be noted that the pricing model is rather not designed for bike rentals for several hours, not to mention days. Citi Bike provides for instance an *annual membership* as well as a *day pass*. Both provide unlimited limited rides for the corresponding pass lengths. However, if the bike is not returned to a dock within 30 minutes, extra fees apply (extra $4 for each additional 15 minutes - as of 2022). Hence, the purpose of the service is to rent a bike multiple times per day but for less than 30 minutes and if needed by a customer for a longer distance for a few hours.
+
+Before deciding on a threshold for removing outliers, we want to check how many bikes were rented for more than half and hour as well as one, two and five hours.
+
+
+```{r}
+# Histogramm trip duration categories
+ggplot(data.frame(citi_cb$tripdur_cat), aes(x=citi_cb$tripdur_cat)) +
+  geom_bar(fill='#2980B9') +
+  theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) +
+  theme_fivethirtyeight()+
+  xlab("Trip Duration Category") +
+  ylab("Number of rides")
+
+```
+
+
 
 ```{r}
 # Remove outliers in the variable trip duration
-citi_cb <- subset(citi_cb, tripduration < 43200)
-boxplot(citi_cb$tripduration, horizontal=TRUE)
-
+# citi_cb <- subset(citi_cb, tripduration < 43200)
 ```
 
 
@@ -279,27 +291,27 @@ skim(citi_cb)
 
 ```
 
-<<<<<<< HEAD
+
 ```{r}
 skim(citi_cb) %>%
   dplyr::select(skim_type, skim_variable, n_missing)
-=======
-## Histogramm Daytime
+
+```
+
+
 
 ```{r}
-ggplot(data.frame(citibike_weather_df$daytime), aes(x=citibike_weather_df$daytime)) +
+## Histogramm Daytime
+ggplot(data.frame(citi_cb$daytime), aes(x=citi_cb$daytime)) +
   geom_bar(fill='#2980B9') +
   theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) +
   theme_fivethirtyeight()+
   xlab("Daytime") +
   ylab("Number of rides")
->>>>>>> 07737e284e6508b71067f088071d71ff74fb2ce3
 
 ```
 
 
-<<<<<<< HEAD
-=======
 ## Hourly Distribution of Rides
 
 ```{r}
@@ -312,7 +324,6 @@ citi_cb %>% ggplot(aes(x=hour,fill=factor(weekday))) +
 
 ```
 
->>>>>>> 07737e284e6508b71067f088071d71ff74fb2ce3
 ## Most and least used Start and End Stations
 
 An important factor for Lyft - the provider of Citi Bike - could be to track the most and least used stations. Stations that are used the most could provide the opportunity to increase the number of docking stations, and the stations where neither many customers start nor finish their ride could be relocated.
@@ -405,8 +416,6 @@ density_end <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
 ```
 
 ```{r}
-library(gridExtra)
-
 grid.arrange(density_start, density_end, ncol=2)
 ```
 
@@ -475,7 +484,7 @@ print(paste0("Interpretation: For every mm of precipitation, the time a customer
 ### Influence of temperature on tripduration (in seconds)
 
 ```{r}
-model <- aov(tripduration ~ meantemp + PRCP, data = citibike_weather_df)
+model <- aov(tripduration ~ meantemp + PRCP, data = citi_cb)
 summary(model)
 ```
 
