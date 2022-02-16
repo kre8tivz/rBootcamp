@@ -64,6 +64,7 @@ require(maps)         # For computing the areas of regions in a projected map
 require(ggmap)        # To visualize spatial data & models on top of static maps
 require(RColorBrewer) # Color palette
 library(gridExtra)
+library(data.table)
 ```
 
 
@@ -324,52 +325,52 @@ citi_cb %>% ggplot(aes(x=hour,fill=factor(weekday))) +
 
 ## Most and least used Start and End Stations
 
-An important factor for Lyft - the provider of Citi Bike - could be to track the most and least used stations. Stations that are used the most could provide the opportunity to increase the number of docking stations, and the stations where neither many customers start nor finish their ride could be relocated.
+An important factor for Lyft - the provider of Citi Bike - could be to track the most and least used stations. Stations that are used the most could provide the opportunity to increase the number of bikes and docking stations, and the stations where neither many customers start nor finish their ride could be relocated.
 
-```{r, echo=FALSE}
-# The 10 most popular start stations
-start.station.rank.t10 <- data.frame(citi_cb %>%
-                             group_by(start.station.name) %>%
-                             summarize(count=n()) %>%
-                             arrange(desc(count))) %>%
-                             head(10)
-start.station.rank.t10
+```{r}
+# Create a dataframe with a column which counts how often a start station was used
+start.station.rank <- data.frame(citi_cb %>%
+                                       group_by(start.station.name) %>%
+                                       summarize(count.start=n()) %>%
+                                       arrange(desc(count.start)))
+
+# Create a dataframe with a column which counts how often an end station was used
+end.station.rank <- data.frame(citi_cb %>%
+                                     group_by(end.station.name) %>%
+                                     summarize(count.end=n()) %>%
+                                     arrange(desc(count.end)))
+
+
+# Combine the start station and end station dataframes
+# So that we have for each station the number of bike rented and the number of bikes returned
+station_usage <- left_join(x=start.station.rank, y=end.station.rank, by=c("start.station.name"="end.station.name"))
+
+# Check if there are start or end stations which were not used
+sum(is.na(station_usage$count.start))
+sum(is.na(station_usage$count.end))
+
+# Replace all NAs with 0 (Stations which no one used should be shown as zero for the subsequent sum)
+station_usage <- station_usage %>% 
+  mutate_all(~replace(., is.na(.), 0))
+
+# Check if the NA values were successfully replaced
+sum(is.na(station_usage$count.start))
+sum(is.na(station_usage$count.end))
+
+# Create a new column which shows the combined number of bikes rented and returned
+station_usage$station.count.comb <- rowSums(station_usage[, c("count.start", "count.end")]) 
+
+# Order the dataframe by the combined number (from largest to smallest) to get a ranking
+station_usage <- station_usage[order(-station_usage$station.count.comb),]
+
+# Rename columns for improved readability
+setnames(station_usage, old = c('start.station.name','count.start', 'count.end', 'station.count.comb'), new = c('Station Name','Bikes rented', 'Bikes returned', 'Total'))
+
+# Check the 10 most and least used stations
+kable(head(station_usage, 10))
+kable(tail(station_usage, 10))
 ```
 
-```{r, echo=FALSE, results='hide'}
-# The 10 least popular start stations
-start.station.rank.l10 <- data.frame(citi_cb %>%
-                              group_by(start.station.name) %>% 
-                              summarize(count=n()) %>% 
-                              arrange(count)) %>% 
-                              head(10)
-
-start.station.rank.l10
-```
-
-```{r, echo=FALSE, results='hide'}
-# The 10 most popular end stations
-end.station.rank.t10 <- data.frame(citi_cb %>%
-                             group_by(end.station.name) %>%
-                             summarize(count=n()) %>%
-                             arrange(desc(count))) %>% 
-                             head(10)
-
-end.station.rank.t10
-
-```
-
-```{r, echo=FALSE, results='hide'}
-# The 10 least popular end stations
-end.station.rank.l10 <- data.frame(citi_cb %>%
-                              group_by(end.station.name) %>% 
-                              summarize(count=n()) %>% 
-                              arrange(count)) %>% 
-                              head(10)
-
-end.station.rank.l10
-
-```
 
 
 ## Identifiying the Popularity of different Areas in New York City
