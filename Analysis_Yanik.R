@@ -14,9 +14,6 @@ require(scales)
 require(knitr)
 require(lubridate)
 require(ggmap)
-require(purrr)
-library(tidyverse)
-install.packages("purrr")
 
 #####################################
 # Read CSV
@@ -57,11 +54,7 @@ citibike_weather_df$daytime <- factor(citibike_weather_df$daytime,levels = c("mo
 
 # Histogram
 ggplot(data.frame(citibike_weather_df$daytime), aes(x=citibike_weather_df$daytime)) +
-  geom_bar(fill='#2980B9') +
-  theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) +
-  theme_fivethirtyeight()+
-  xlab("Daytime") +
-  ylab("Number of rides")
+  geom_bar()
 
 #Hourly Distribution of Rides
 
@@ -85,20 +78,3 @@ ggplot(aes(x=meantemp,y=tripduration),data=citibike_weather_df)+
 
 View(citibike_weather_df)
 max(citibike_weather_df$tripduration)
-
-#########################################################################
-# ANOVA with Tripduration per Day
-#########################################################################
-
-sum_monday    <- sum(citibike_weather_df[which(citibike_weather_df$weekday == "Monday"), "tripduration"])
-sum_tuesday   <- sum(citibike_weather_df[which(citibike_weather_df$weekday == "Tuesday"), "tripduration"])
-sum_wednesday <- sum(citibike_weather_df[which(citibike_weather_df$weekday == "Wednesday"), "tripduration"])
-sum_thursday  <- sum(citibike_weather_df[which(citibike_weather_df$weekday == "Thursday"), "tripduration"])
-sum_friday    <- sum(citibike_weather_df[which(citibike_weather_df$weekday == "Friday"), "tripduration"])
-sum_saturday  <- sum(citibike_weather_df[which(citibike_weather_df$weekday == "Saturday"), "tripduration"])
-sum_sunday    <- sum(citibike_weather_df[which(citibike_weather_df$weekday == "Sunday"), "tripduration"])
-
-tapply(citibike_weather_df$tripduration, citibike_weather_df$weekday, mean)
-
-model <- aov(tripduration ~ meantemp + PRCP, data = citibike_weather_df)
-summary(model)
