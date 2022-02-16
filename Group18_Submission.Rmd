@@ -371,7 +371,61 @@ kable(head(station_usage, 10))
 kable(tail(station_usage, 10))
 ```
 
+```{r}
+# Create variables with the most and least used stations
+top10 <- head(station_usage, 10)
+least10 <- tail(station_usage, 10)
 
+# Here we add the coordinates to our dataframe
+top_10_coord <- left_join(x=top10, y=citi_cb, by=c("Station Name"="start.station.name"))
+
+top10_coord <- top_10_coord %>% 
+  select('Station Name','start.station.latitude', 'start.station.longitude', 'Bikes rented', 'Bikes returned', 'Total')
+
+top10_coord <- distinct(top10_coord)
+
+
+# Here we add the coordinates to our dataframe
+least10_coord <- left_join(x=least10, y=citi_cb, by=c("Station Name"="start.station.name"))
+
+least10_coord <- least10_coord %>% 
+  select('Station Name','start.station.latitude', 'start.station.longitude', 'Bikes rented', 'Bikes returned', 'Total')
+
+least10_coord <- distinct(least10_coord)
+
+
+bbox <- c(left = -74.1, bottom = 40.65, right = -73.875, top = 40.825)
+top10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
+                geom_point(data=top10_coord, 
+                aes(x=start.station.longitude, 
+                    y=start.station.latitude),
+                color = 'red', size = 2, alpha = 0.5) +
+                theme_update(plot.title = element_text(hjust = 0.5)) +
+                ggtitle("The 10 most used Stations") +
+                theme(axis.line = element_blank(),
+                      axis.text = element_blank(),
+                      axis.ticks = element_blank(),
+                      plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), 'lines')) +
+                xlab('') +
+                ylab('')
+
+least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
+                geom_point(data=least10_coord, 
+                aes(x=start.station.longitude, 
+                    y=start.station.latitude),
+                color = 'red', size = 2, alpha = 0.5) +
+                theme_update(plot.title = element_text(hjust = 0.5)) +
+                ggtitle("The 10 least used Stations") +
+                  theme(axis.line = element_blank(),  # Remove axis line
+                      axis.text = element_blank(),    # Remove axis text
+                      axis.ticks = element_blank(),   # Remove axis ticks
+                      plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), 'lines')) +
+                xlab('') +
+                ylab('')
+
+# Show the two maps side by side
+grid.arrange(top10_map, least10_map, ncol=2)
+```
 
 ## Identifiying the Popularity of different Areas in New York City
 
