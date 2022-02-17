@@ -12,7 +12,7 @@ output:
     latex_engine: xelatex                         # Solves encoding issue
 geometry: "left=2cm,right=2cm,top=2cm,bottom=2cm" # Customize margins
 biblio-style: apa
-bibliography: Sources.bib
+bibliography: packages.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -245,29 +245,31 @@ options(scipen = 999)
 # Check if the variable trip duration has outliers
 boxplot(citi_cb$tripduration, 
         horizontal=TRUE,
+        main = "Trip Duration Distribution",
         xlab = "Trip Duration (in Seconds)",
-        color = "lightgray")
+        color = "lightgray") +
+        theme_fivethirtyeight()
 ```
 
 The boxplot reveals that the variable *tripduration* contains outliers. There are for example values above 50'000 seconds which corresponds to approximately 15 hours. The fact that bicycles are rented for such long time durations can be considered as interesting information, although it needs to be noted that the pricing model is rather not designed for bike rentals for several hours, not to mention days. Citi Bike provides for instance an *annual membership* as well as a *day pass*. Both provide unlimited limited rides for the corresponding pass lengths. However, if the bike is not returned to a dock within 30 minutes, extra fees apply (extra $4 for each additional 15 minutes - as of 2022). Hence, the purpose of the service is to rent a bike rather multiple times per day but for not that much longer than 30 minutes and if needed by a customer for a longer distance for a few hours.
 
 Before deciding on a threshold for removing outliers, we want to check how many bikes were rented for different time durations.
 
-```{r, fig.height=4}
+```{r}
 tripdur_cat_count <- citi_cb %>%
   group_by(tripdur_cat) %>%
   summarise(counts = n())
 
-# Histogramm trip duration categories
+# Histogram trip duration categories
 ggplot(tripdur_cat_count, aes(x=tripdur_cat, y=counts)) +
   geom_bar(fill = "#2980B9",
            stat = "identity") +
   geom_text(aes(label = counts),
-           vjust = -0.3) + # Label above bar
-  theme(legend.position="none",
-        axis.text.y=element_blank(),
-        plot.title=element_text(hjust=.5)) +
-  theme_fivethirtyeight() +
+            vjust = -0.3) + # Label above bar
+  theme_light() +
+  ggtitle("The 10 least used Stations") +
+  ggeasy::easy_center_title() +
+  theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Trip Duration Category") +
   ylab("Number of rides")
 ```
@@ -313,7 +315,7 @@ skim(citi_cb)
 ## Histogramm Daytime
 ggplot(data.frame(citi_cb$daytime), aes(x=citi_cb$daytime)) +
   geom_bar(fill='#2980B9') +
-  theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) +
+  theme(legend.position="none", axis.text.y=element_blank(), plot.title=element_text(hjust=.5)) +
   theme_fivethirtyeight()+
   xlab("Daytime") +
   ylab("Number of rides")
@@ -475,18 +477,16 @@ start_station_dens <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite
 
 # Create density map for end stations
 end_station_dens <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
-  stat_density_2d(
-    data = citi_cb, 
-    aes(x=end.station.longitude, y=end.station.latitude, fill= ..level..),
-    alpha = .15,
-    bins = 18,
-    geom = "polygon") +
+  stat_density_2d(data = citi_cb, 
+                  aes(x=end.station.longitude, y=end.station.latitude, fill= ..level..),
+                  alpha = .15,
+                  bins = 18,
+                  geom = "polygon") +
   scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu")) + # library RColorbrewer
   ggtitle(label = "End Station Density") +
   theme(plot.title = element_text(hjust = 0.5)) +          # Center the plot title
   xlab("Longitude") +
-  ylab("Latitude") +
-   ggtitle(expression(atop("Hourly Distribution of Rides")))
+  ylab("Latitude")
 
 start_station_dens
 end_station_dens
@@ -501,9 +501,13 @@ Furthermore, it is of interest how strongly the bike-sharing service is dependen
 
 ```{r}
 # How strong is the effect of the average daily temperature on the trip duration?
-ggplot(citi_cb, aes(x=meantemp, y=tripduration)) +
-  geom_point(color='#2980B9') + 
-  geom_smooth(method=lm, se=FALSE, fullrange=TRUE, color='#2C3E50') +
+
+trip_dur_filter <- citi_cb %>%
+  filter(tripduration < 8000)
+
+ggplot(trip_dur_filter, aes(x=meantemp, y=tripduration)) +
+  geom_point(color='#2980B9', size=1.5) + 
+  geom_smooth(method=lm, color='darkred', linetype="dashed") +
   ggtitle(label="Effect of Average daily Temperature on Trip Duration") +
   ggeasy::easy_center_title() +
   xlab("Average daily temperature") +
@@ -525,8 +529,8 @@ rain_cat_freq <- citi_cb %>%
   summarise(counts = n())
 
 # Plot of the result
-ggplot(rain_cat_freq, aes(x = raingrouped, y = counts)) +
-  geom_bar(fill = "#0073C2FF", 
+rain_hist <- ggplot(rain_cat_freq, aes(x = raingrouped, y = counts)) +
+  geom_bar(fill = "#2980B9", 
            stat = "identity") +
   geom_text(aes(label = counts), 
             vjust = -0.3) + # Label above bar
@@ -535,36 +539,44 @@ ggplot(rain_cat_freq, aes(x = raingrouped, y = counts)) +
   
 ```
 
-```{r, results="asis"}
+With the histogram we can see how much and how often it rained during the randomly sampled trips. For the categorization of precipitation, the scale of Meteo Schweiz -@MeteoSchweiz is used:
+
+| **Term**   | **24h sum in mm** | **Explanation**                                                                                                                                 |
+|------------|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| Weak       | 0.1-2             | Some rain, some snowfall, isolated snowflakes, weak rain, weak snowfall, isolated rain showers, isolated snow showers, drizzle, (snow drizzle). |
+| Moderate   | 2-10              | Some precipitation, downpours, some snowfall, some rain showers, some snow showers some showers, some thunderstorms.                            |
+| Heavy      | 10-30             | Heavy precipitation, heavy rainfall, heavy snowfall, heavy rain showers, heavy snow showers, thunderstorms without (intensity term).            |
+| Very heavy | 30-50             | Partly heavy rain, heavy rainfall, heavy snowfall, heavy thunderstorms, heavy thunderstorms.                                                    |
+| Intense    | >50               | Heavy rain, heavy precipitation, heavy snowfall, heavy thunderstorms, heavy thunderstorms.                                                      |
+
+Table: Precipitation scale
+
+
+```{r}
+rain_hist
+```
+
+
+```{r}
+trip_dur_filter <- citi_cb %>%
+  filter(tripduration < 8000)
+
 # How strong is the effect of precipitation on the trip duration?
-ggplot(citi_cb, aes(x=PRCP, y=tripduration)) +
-  geom_point(color='#2980B9') + 
-  geom_smooth(method=lm, se=FALSE, fullrange=TRUE, color='#2C3E50') +
+ggplot(trip_dur_filter, aes(x=PRCP, y=tripduration)) +
+  geom_point(color='#2980B9', size=1.5) + 
+  geom_smooth(method=lm, color='darkred', linetype="dashed") +
   ggtitle(label="Effect of Precipitation on Trip Duration") +
   ggeasy::easy_center_title() +
   xlab("Precipitation (in mm)") +
   ylab("Trip duration (in seconds)")
-
-cor_tripduration_precipitation <- round(cor(x=citi_cb$PRCP, 
-                                            y=citi_cb$tripduration, 
-                                            method="spearman"),2)
-print(paste0("Interpretation: For every mm of precipitation, the time a customer rents a bike changes by ", cor_tripduration_precipitation, " seconds."))
 
 ```
 
 ```{r}
-trip_dur_filter <- citi_cb %>%
-  filter(tripduration < 10000)
-
-# How strong is the effect of precipitation on the trip duration?
-ggplot(trip_dur_filter, aes(x=PRCP, y=tripduration)) +
-  geom_point(color='#2980B9') + 
-  geom_smooth(method=lm, se=FALSE, fullrange=TRUE, color='#2C3E50') +
-  ggtitle(label="Effect of Precipitation on Trip Duration") +
-  ggeasy::easy_center_title() +
-  xlab("Precipitation (in mm)") +
-  ylab("Trip duration (in seconds)")
-
+cor_tripduration_precipitation <- round(cor(x=citi_cb$PRCP, 
+                                            y=citi_cb$tripduration, 
+                                            method="spearman"),2)
+print(paste0("Interpretation: For every mm of precipitation, the time a customer rents a bike changes by ", cor_tripduration_precipitation, " seconds."))
 ```
 
 
