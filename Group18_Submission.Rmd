@@ -245,10 +245,8 @@ options(scipen = 999)
 # Check if the variable trip duration has outliers
 boxplot(citi_cb$tripduration, 
         horizontal=TRUE,
-        main = "Trip Duration Distribution",
         xlab = "Trip Duration (in Seconds)",
-        color = "lightgray") +
-        theme_fivethirtyeight()
+        color = "lightgray")
 ```
 
 The boxplot reveals that the variable *tripduration* contains outliers. There are for example values above 50'000 seconds which corresponds to approximately 15 hours. The fact that bicycles are rented for such long time durations can be considered as interesting information, although it needs to be noted that the pricing model is rather not designed for bike rentals for several hours, not to mention days. Citi Bike provides for instance an *annual membership* as well as a *day pass*. Both provide unlimited limited rides for the corresponding pass lengths. However, if the bike is not returned to a dock within 30 minutes, extra fees apply (extra $4 for each additional 15 minutes - as of 2022). Hence, the purpose of the service is to rent a bike rather multiple times per day but for not that much longer than 30 minutes and if needed by a customer for a longer distance for a few hours.
@@ -267,7 +265,7 @@ ggplot(tripdur_cat_count, aes(x=tripdur_cat, y=counts)) +
   geom_text(aes(label = counts),
             vjust = -0.3) + # Label above bar
   theme_light() +
-  ggtitle("The 10 least used Stations") +
+  ggtitle("10 least used Stations") +
   ggeasy::easy_center_title() +
   theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Trip Duration Category") +
@@ -316,7 +314,10 @@ skim(citi_cb)
 ggplot(data.frame(citi_cb$daytime), aes(x=citi_cb$daytime)) +
   geom_bar(fill='#2980B9') +
   theme(legend.position="none", axis.text.y=element_blank(), plot.title=element_text(hjust=.5)) +
-  theme_fivethirtyeight()+
+  theme_light() +
+  ggtitle("Histogram with Number of Trips during Day Time Categories") +
+  ggeasy::easy_center_title() +
+  theme(plot.title = element_text(hjust = 0.5)) + 
   xlab("Daytime") +
   ylab("Number of rides")
 ```
@@ -420,14 +421,15 @@ top10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                 color = 'red', size = 2, alpha = 0.5) +
                 theme_update(plot.title = element_text(hjust = 0.5)) +
                 ggtitle("The 10 most used Stations") +
+                ggeasy::easy_center_title() +
                 xlab('') +                            # Remove text on x-axis
                 ylab('') +                            # Remove text on y-axis
                 theme(axis.line = element_blank(),    # Remove axis line
                       axis.text = element_blank(),    # Remove axis text
                       axis.ticks = element_blank(),   # Remove axis ticks
-                      plot.margin = margin(t = -50,    # Top margin
+                      plot.margin = margin(t = -50,   # Top margin
                                            r = 0.1,   # Right margin
-                                           b = -50,    # Bottom margin
+                                           b = -50,   # Bottom margin
                                            l = 0.1))  # Left margin
 
 least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
@@ -436,15 +438,15 @@ least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                     y=start.station.latitude),
                 color = 'red', size = 2, alpha = 0.5) +
                 theme_update(plot.title = element_text(hjust = 0.5)) +
-                ggtitle("The 10 least used Stations") +
+                ggtitle("10 least used Stations") +
                 xlab('') +                            # Remove text on x-axis
                 ylab('') +                            # Remove text on y-axis
                 theme(axis.line = element_blank(),    # Remove axis line
                       axis.text = element_blank(),    # Remove axis text
                       axis.ticks = element_blank(),   # Remove axis ticks
-                      plot.margin = margin(t = -50,    # Top margin
+                      plot.margin = margin(t = -50,   # Top margin
                                            r = 0.1,   # Right margin
-                                           b = -50,    # Bottom margin
+                                           b = -50,   # Bottom margin
                                            l = 0.1))  # Left margin
 
 # Show the two maps side by side
@@ -508,9 +510,11 @@ trip_dur_filter <- citi_cb %>%
 ggplot(trip_dur_filter, aes(x=meantemp, y=tripduration)) +
   geom_point(color='#2980B9', size=1.5) + 
   geom_smooth(method=lm, color='darkred', linetype="dashed") +
-  ggtitle(label="Effect of Average daily Temperature on Trip Duration") +
+  theme_light() +
+  ggtitle("Effect of Average daily Temperature on Trip Duration") +
   ggeasy::easy_center_title() +
-  xlab("Average daily temperature") +
+  theme(plot.title = element_text(hjust = 0.5)) +  
+  xlab("Average daily temperature (in Celsius)") +
   ylab("Trip duration (in seconds)")
 
 # Spearman because there are two quantitative variables
@@ -530,13 +534,14 @@ rain_cat_freq <- citi_cb %>%
 
 # Plot of the result
 rain_hist <- ggplot(rain_cat_freq, aes(x = raingrouped, y = counts)) +
-  geom_bar(fill = "#2980B9", 
-           stat = "identity") +
-  geom_text(aes(label = counts), 
-            vjust = -0.3) + # Label above bar
+  geom_bar(fill = "#2980B9",stat = "identity") +
+  geom_text(aes(label = counts), vjust = -0.3) +   # Label above bar
+  theme_light() +
+  ggtitle("Histogram with Rain Categories") +
+  ggeasy::easy_center_title() +
+  theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Rain Category") +
   ylab("Number of Rides")
-  
 ```
 
 With the histogram we can see how much and how often it rained during the randomly sampled trips. For the categorization of precipitation, the scale of Meteo Schweiz -@MeteoSchweiz is used:
@@ -565,8 +570,10 @@ trip_dur_filter <- citi_cb %>%
 ggplot(trip_dur_filter, aes(x=PRCP, y=tripduration)) +
   geom_point(color='#2980B9', size=1.5) + 
   geom_smooth(method=lm, color='darkred', linetype="dashed") +
-  ggtitle(label="Effect of Precipitation on Trip Duration") +
+  theme_light() +
+  ggtitle("Effect of Precipitation on Trip Duration") +
   ggeasy::easy_center_title() +
+  theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Precipitation (in mm)") +
   ylab("Trip duration (in seconds)")
 
