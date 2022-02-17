@@ -447,7 +447,7 @@ least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
 grid.arrange(top10_map, least10_map, ncol=2)
 ```
 
-The two maps show that the stations in Manhattan close to the Broadway are used the most. The stations in Brooklyn, on the other hand, are utilised very rarely. It is particularly important to mention here that this is based on a small sample. The analysis should be repeated with a larger number of data and over several periods of time.
+The two maps show that the stations in Manhattan close to the Broadway are used the most. The stations in Brooklyn, on the other hand, are utilised very rarely. It is particularly important to mention here that this is based on a small sample. The analysis should be repeated with a larger number of data and over several periods of time before deciding on increasing the number of docks or relocating bike stations.
 
 ## Identifiying the Popularity of different Areas in New York City
 
@@ -492,6 +492,7 @@ end_station_dens
 
 ## Influence of Meteorological Factors
 
+Furthermore, it is of interest how strongly the bike-sharing service is dependent on meteorological factors such as rain, snow and temperatures, respectively how strongly the number of trips is influenced.
 
 ### Influence of Temperature
 
