@@ -19,7 +19,7 @@ bibliography: sources.bib
 knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 ```
 
-
+\newpage
 # Introduction
 
 Noel Rinke and Yanik Baumann are students at the Lucerne University of Applied Sciences and Arts studying for a Master's degree in Applied Information and Data Science. Our assignment represents a complete data analysis where we use a wide variety of R functionalities. For this analysis, we use data from Citi Bike New York. 
@@ -238,14 +238,12 @@ citi_cb$tripdur_cat <- factor(citi_cb$tripdur_cat, levels = c("0 to 5 min", "5 t
 
 Outliers can have a large impact on the statistics derived from the dataset, which is why they need to be handled or at least acknowledged. The variable *tripduration* consists of the time (in seconds) a customer rents a bike from Citi Bike until the bike is returned to a station with an empty dock. Therefore, there can be both natural and non-natural outliers. While the non-natural outliers are due to measurement errors (e.g. system failures), natural outliers could be due to customers not returning the rented bike, customers not being able to return the rented bike until the next day, or similar. A boxplot is created to check the distribution of the variable:
 
-```{r}
-# Deactivate scientific notation
-options(scipen = 999)
+```{r, fig.cap = "Boxplot to examine how the variable is distributed and if there are outliers."}
+options(scipen = 999) # Deactivate scientific notation
 
-# Check if the variable trip duration has outliers
 boxplot(citi_cb$tripduration, 
         horizontal=TRUE,
-        xlab = "Trip Duration (in Seconds)",
+        xlab = "Trip Duration (in seconds)",
         color = "lightgray")
 ```
 
@@ -253,7 +251,7 @@ The boxplot reveals that the variable *tripduration* contains outliers. There ar
 
 Before deciding on a threshold for removing outliers, we want to check how many bikes were rented for different time durations.
 
-```{r}
+```{r, fig.cap = "Histogram of the trip duration categories to get an overview."}
 tripdur_cat_count <- citi_cb %>%
   group_by(tripdur_cat) %>%
   summarise(counts = n())
@@ -265,10 +263,10 @@ ggplot(tripdur_cat_count, aes(x=tripdur_cat, y=counts)) +
   geom_text(aes(label = counts),
             vjust = -0.3) + # Label above bar
   theme_light() +
-  ggtitle("10 least used Stations") +
+  ggtitle("Histogram of Trip Duration Categories") +
   ggeasy::easy_center_title() +
   theme(plot.title = element_text(hjust = 0.5)) +
-  xlab("Trip Duration Category") +
+  xlab('') + # Remove text on x-axis
   ylab("Number of rides")
 ```
 
@@ -278,23 +276,13 @@ With the condition that the outliers are to be examined more closely, a threshol
 citi_cb <- subset(citi_cb, tripduration < 43200)
 ```
 
-
+\newpage
 # Analysis
 
 ## Data Inspection
 
 The first and the last few entries of the data have been checked to make sure the data is valid and complete.
 Also it is helpful to get an overview of the different variables of the data set.
-
-```{r, results='asis'}
-# Alternative to summary to get an overview of the data frame
-# head(citi_cb)
-```
-
-```{r}
-# Alternative to summary to get an overview of the data frame
-# tail(citi_cb)
-```
 
 ```{r}
 # Alternative to summary to get an overview of the data frame
@@ -315,7 +303,7 @@ ggplot(data.frame(citi_cb$daytime), aes(x=citi_cb$daytime)) +
   geom_bar(fill='#2980B9') +
   theme(legend.position="none", axis.text.y=element_blank(), plot.title=element_text(hjust=.5)) +
   theme_light() +
-  ggtitle("Histogram with Number of Trips during Day Time Categories") +
+  ggtitle("Histogram with Number of Rides by Time of Day") +
   ggeasy::easy_center_title() +
   theme(plot.title = element_text(hjust = 0.5)) + 
   xlab("Daytime") +
@@ -391,7 +379,7 @@ kable(head(station_usage, 10), caption="Most used stations")
 kable(tail(station_usage, 10), caption="Least used stations")
 ```
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, fig.cap = "Map of New York which show with red dots the most and least used stations."}
 # Create variables with the most and least used stations
 top10 <- head(station_usage, 10)
 least10 <- tail(station_usage, 10)
@@ -420,16 +408,16 @@ top10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                     y=start.station.latitude),
                 color = 'red', size = 2, alpha = 0.5) +
                 theme_update(plot.title = element_text(hjust = 0.5)) +
-                ggtitle("The 10 most used Stations") +
+                ggtitle("10 most used Stations") +
                 ggeasy::easy_center_title() +
                 xlab('') +                            # Remove text on x-axis
                 ylab('') +                            # Remove text on y-axis
                 theme(axis.line = element_blank(),    # Remove axis line
                       axis.text = element_blank(),    # Remove axis text
                       axis.ticks = element_blank(),   # Remove axis ticks
-                      plot.margin = margin(t = -50,   # Top margin
+                      plot.margin = margin(t = 0,     # Top margin
                                            r = 0.1,   # Right margin
-                                           b = -50,   # Bottom margin
+                                           b = 0,     # Bottom margin
                                            l = 0.1))  # Left margin
 
 least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
@@ -444,13 +432,12 @@ least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                 theme(axis.line = element_blank(),    # Remove axis line
                       axis.text = element_blank(),    # Remove axis text
                       axis.ticks = element_blank(),   # Remove axis ticks
-                      plot.margin = margin(t = -50,   # Top margin
+                      plot.margin = margin(t = 0,     # Top margin
                                            r = 0.1,   # Right margin
-                                           b = -50,   # Bottom margin
+                                           b = 0,     # Bottom margin
                                            l = 0.1))  # Left margin
 
-# Show the two maps side by side
-grid.arrange(top10_map, least10_map, ncol=2)
+grid.arrange(top10_map, least10_map, ncol=2)          # Show the two maps side by side
 ```
 
 The two maps show that the stations in Manhattan close to the Broadway are used the most. The stations in Brooklyn, on the other hand, are utilised very rarely. It is particularly important to mention here that this is based on a small sample. The analysis should be repeated with a larger number of data and over several periods of time before deciding on increasing the number of docks or relocating bike stations.
@@ -489,7 +476,9 @@ end_station_dens <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")
   theme(plot.title = element_text(hjust = 0.5)) +          # Center the plot title
   xlab("Longitude") +
   ylab("Latitude")
+```
 
+```{r, echo=FALSE, include=TRUE}
 start_station_dens
 end_station_dens
 ```
@@ -592,11 +581,13 @@ print(paste0("Interpretation: For every mm of precipitation, the time a customer
 Using the analysis of variance, we would like to see whether the factors of average temperature and rain have an influence on the length of a trip.
 
 ```{r}
+options(scipen = 999) # Deactivate scientific notation
+
 model <- aov(tripduration ~ meantemp + PRCP, data = citi_cb)
 summary(model)
 ```
 
-
+\newpage
 # Results
 
 The data analysis carried out has produced many valuable insights. However, it should be mentioned again at this point that the analysis is based on a sample and not on the entirety of the data. For decisions, the entirety or at least a sample containing records of all months since the start of operations in 2013 would be necessary. The data analysis carried out provides the basis for evaluation and could easily be extended with more datasets and the rides and the sample size increased. The findings obtained with the selected sample are as follows:
@@ -604,10 +595,7 @@ The data analysis carried out has produced many valuable insights. However, it s
 Most rides are done in the afternoon. During the week, peaks are measured between 08:00 - 09:00 and between 17:00 - 18:00. On weekends, the busiest time is between 11:00 - 16:00. Citibike New York is especially popular in the Manhattan borough. 
 Rain has a strong influence on the number of rides per day. When there is no rain, the Citibikes are used much more often. The average temperature has a highly significant influence on the duration of the trips. Also the rain has a weak influence on the duration of the trips.
 
-# Lessons Learned
-
-* To display maps in a pdf document or any other format except HTML, static maps need to be used. Leaflet - which was used initially - is a JavaScript library for building interactive maps for the web and hence not static. There is a workaround with generating image files which is however not recommended because libraries should be used what they are built for.
-
+\newpage
 # Sources
 
 
