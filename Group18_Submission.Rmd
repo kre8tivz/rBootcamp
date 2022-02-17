@@ -51,7 +51,7 @@ The second data set used stems from the National Oceanic and Atmospheric Adminis
 
 require(knitr)        # Engine for dynamic report generation
 require(dplyr)        # For data manipulation
-require(tidyr)        # Provides various important functions that can be used for Data Cleaning
+require(tidyr)        # Provides various important functions that can be used for data cleaning
 require(broom)        # For summarizing statistical model objects in tidy tibbles
 require(lubridate)    # For working with date-times and time-spans
 require(skimr)        # For summary statistic
@@ -96,6 +96,8 @@ nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 ```
 
 ## Taking Samples
+
+As a further step to narrow down the amount of data to a minimum, we extract a sample of 4000 observations for the analysis with 1000 observations per selected month.
 
 ```{r samples}
 citibike_jan19_sample <- sample_n(citibike_jan19, size=1000)
@@ -245,16 +247,11 @@ boxplot(citi_cb$tripduration,
         horizontal=TRUE,
         xlab = "Trip Duration (in Seconds)",
         color = "lightgray")
-
-# citi_cb %>%
-#   ggplot(aes(x=tripduration)) +
-#   geom_boxplot()
 ```
 
 The boxplot reveals that the variable *tripduration* contains outliers. There are for example values above 50'000 seconds which corresponds to approximately 15 hours. The fact that bicycles are rented for such long time durations can be considered as interesting information, although it needs to be noted that the pricing model is rather not designed for bike rentals for several hours, not to mention days. Citi Bike provides for instance an *annual membership* as well as a *day pass*. Both provide unlimited limited rides for the corresponding pass lengths. However, if the bike is not returned to a dock within 30 minutes, extra fees apply (extra $4 for each additional 15 minutes - as of 2022). Hence, the purpose of the service is to rent a bike rather multiple times per day but for not that much longer than 30 minutes and if needed by a customer for a longer distance for a few hours.
 
-Before deciding on a threshold for removing outliers, we want to check how many bikes were rented for more than half and hour as well as one, two and five hours.
-
+Before deciding on a threshold for removing outliers, we want to check how many bikes were rented for different time durations.
 
 ```{r, fig.height=4}
 tripdur_cat_count <- citi_cb %>%
@@ -273,14 +270,11 @@ ggplot(tripdur_cat_count, aes(x=tripdur_cat, y=counts)) +
   theme_fivethirtyeight() +
   xlab("Trip Duration Category") +
   ylab("Number of rides")
-
-
 ```
 
-With the condition that the outliers are to be examined more closely, a threshold value of 12 hours is provisionally defined. The values above this are excluded from the analysis until a more detailed investigation is carried out.
+With the condition that the outliers are to be examined more closely, a threshold value of 12 hours is provisionally defined. The values above this threshold are excluded from the analysis until a more detailed investigation is carried out.
 
 ```{r}
-# Remove outliers in the variable trip duration
 citi_cb <- subset(citi_cb, tripduration < 43200)
 ```
 
@@ -356,10 +350,10 @@ end.station.rank <- data.frame(citi_cb %>%
                                      summarize(count.end=n()) %>%
                                      arrange(desc(count.end)))
 
-
-# Combine the start station and end station dataframes
-# So that we have for each station the number of bike rented and the number of bikes returned
-station_usage <- left_join(x=start.station.rank, y=end.station.rank, by=c("start.station.name"="end.station.name"))
+# Combine the start station and end station data frames, so that we have 
+# for each station the number of bikes rented and the number of bikes returned
+station_usage <- left_join(x=start.station.rank, y=end.station.rank, 
+                           by=c("start.station.name"="end.station.name"))
 
 # Check if there are start or end stations which were not used
 na_check_start_bef <- sum(is.na(station_usage$count.start))
@@ -378,7 +372,7 @@ na_check_end_aft <- sum(is.na(station_usage$count.end))
 if (na_check_start_aft != 0){
   print(paste0("After replacement, there are ", na_check_start_aft, " start stations with NA values and ", na_check_end_aft, " end stations with NA values.")) 
 } else{
-  print("Successfully replaced NA values with 0.")}
+  print("Successfully replaced NA values with the value 0.")}
 
 # Create a new column which shows the combined number of bikes rented and returned
 station_usage$station.count.comb <- rowSums(station_usage[, c("count.start", "count.end")])
@@ -424,12 +418,15 @@ top10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                 color = 'red', size = 2, alpha = 0.5) +
                 theme_update(plot.title = element_text(hjust = 0.5)) +
                 ggtitle("The 10 most used Stations") +
+                xlab('') +                            # Remove text on x-axis
+                ylab('') +                            # Remove text on y-axis
                 theme(axis.line = element_blank(),    # Remove axis line
                       axis.text = element_blank(),    # Remove axis text
                       axis.ticks = element_blank(),   # Remove axis ticks
-                      plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), 'lines')) +
-                xlab('') +                            # Remove text on x-axis
-                ylab('')                              # Remove text on y-axis
+                      plot.margin = margin(t = -50,    # Top margin
+                                           r = 0.1,   # Right margin
+                                           b = -50,    # Bottom margin
+                                           l = 0.1))  # Left margin
 
 least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                 geom_point(data=least10_coord, 
@@ -438,12 +435,15 @@ least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                 color = 'red', size = 2, alpha = 0.5) +
                 theme_update(plot.title = element_text(hjust = 0.5)) +
                 ggtitle("The 10 least used Stations") +
-                  theme(axis.line = element_blank(),  # Remove axis line
+                xlab('') +                            # Remove text on x-axis
+                ylab('') +                            # Remove text on y-axis
+                theme(axis.line = element_blank(),    # Remove axis line
                       axis.text = element_blank(),    # Remove axis text
                       axis.ticks = element_blank(),   # Remove axis ticks
-                      plot.margin = unit(c(0.1, 0.1, 0.1, 0.1), 'lines')) +
-                xlab('') +                            # Remove text on x-axis
-                ylab('')                              # Remove text on y-axis
+                      plot.margin = margin(t = -50,    # Top margin
+                                           r = 0.1,   # Right margin
+                                           b = -50,    # Bottom margin
+                                           l = 0.1))  # Left margin
 
 # Show the two maps side by side
 grid.arrange(top10_map, least10_map, ncol=2)
