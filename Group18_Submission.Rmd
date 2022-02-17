@@ -77,21 +77,21 @@ This chapter describes the import and the preparation of the data sets.
 The ride-sharing data provided by the company Lyft includes many millions of observations since 2013. We decided to reduce the size of the data used to a minimum in order to ensure high performance in the analysis. The months of January, April, July and October for the rides of the year 2019 as well as the weather data for the whole year 2019 are imported below.
 
 ```{r citibike-import}
-citibike_jan19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
+citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
 
-citibike_apr19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
+citibike_apr19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201904-citibike-tripdata.csv'))
 
-citibike_jul19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
+citibike_jul19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201907-citibike-tripdata.csv'))
 
-citibike_oct19 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
+citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201910-citibike-tripdata.csv'))
 ```
 
 ```{r weather-import}
-nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\Yanik\\switchdrive',
+nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv'))
 ```
 
@@ -540,6 +540,8 @@ summary(model)
 
 
 # Results
+
+The data analysis carried out has produced many valuable insights. However, it should be mentioned again at this point that the analysis is based on a sample and not on the entirety of the data. For decisions, the entirety or at least a sample containing records of all months since the start of operations in 2013 would be necessary. The data analysis carried out provides the basis for evaluation and could easily be extended with more data sets and the rides and the sample size increased. The findings obtained with the selected sample are as follows:
 
 Most rides are done in the afternoon. During the week, peaks are measured between 08:00 - 09:00 and between 17:00 - 18:00. On weekends, the busiest time is between 11:00 - 16:00. Citibike New York is especially popular in the Manhattan borough. 
 Rain has a strong influence on the number of rides per day. When there is no rain, the Citibikes are used much more often. However, the rain has no significant influence on the duration of the trips. 
