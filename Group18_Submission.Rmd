@@ -232,34 +232,6 @@ citi_cb$tripdur_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
 citi_cb$tripdur_cat <- factor(citi_cb$tripdur_cat, levels = c("0 to 5 min", "5 to 15 min", "15 to 30 min", "30 to 60 min", "1 to 4 h", "4 to 12 h", "over 12 h"))
 ```
 
-
-# Analysis
-
-## Data Inspection
-
-The first and the last few entries of the data have been checked to make sure the data is valid and complete.
-Also it is helpful to get an overview of the different variables of the data set.
-
-```{r, results='asis'}
-# Alternative to summary to get an overview of the data frame
-# head(citi_cb)
-```
-
-```{r}
-# Alternative to summary to get an overview of the data frame
-# tail(citi_cb)
-```
-
-```{r}
-# Alternative to summary to get an overview of the data frame
-str(citi_cb)
-```
-
-```{r}
-# Alternative to summary to get an overview of the data frame
-skim(citi_cb)
-```
-
 ## Outlier Detection and Elimination
 
 Outliers can have a large impact on the statistics derived from the dataset, which is why they need to be handled or at least acknowledged. The variable *tripduration* consists of the time (in seconds) a customer rents a bike from Citi Bike until the bike is returned to a station with an empty dock. Therefore, there can be both natural and non-natural outliers. While the non-natural outliers are due to measurement errors (e.g. system failures), natural outliers could be due to customers not returning the rented bike, customers not being able to return the rented bike until the next day, or similar. A boxplot is created to check the distribution of the variable:
@@ -310,6 +282,34 @@ With the condition that the outliers are to be examined more closely, a threshol
 ```{r}
 # Remove outliers in the variable trip duration
 citi_cb <- subset(citi_cb, tripduration < 43200)
+```
+
+
+# Analysis
+
+## Data Inspection
+
+The first and the last few entries of the data have been checked to make sure the data is valid and complete.
+Also it is helpful to get an overview of the different variables of the data set.
+
+```{r, results='asis'}
+# Alternative to summary to get an overview of the data frame
+# head(citi_cb)
+```
+
+```{r}
+# Alternative to summary to get an overview of the data frame
+# tail(citi_cb)
+```
+
+```{r}
+# Alternative to summary to get an overview of the data frame
+str(citi_cb)
+```
+
+```{r}
+# Alternative to summary to get an overview of the data frame
+skim(citi_cb)
 ```
 
 
