@@ -164,6 +164,9 @@ citi_cb$raingrouped <- ifelse(citi_cb$PRCP == 0, 'no rain',
                        ifelse(citi_cb$PRCP > 0   & citi_cb$PRCP <=2.0, 'weak',
                        ifelse(citi_cb$PRCP >2.0  & citi_cb$PRCP <=10.0, 'moderate',
                        ifelse(citi_cb$PRCP >10.0 & citi_cb$PRCP <=30.0, 'heavy', 'intense'))))
+
+# To make sure that the categories are in the intended order
+citi_cb$raingrouped <- factor(citi_cb$raingrouped, levels = c("no rain", "weak", "moderate", "heavy", "intense"))
 ```
 
 ### Creating the Variable Snow Yes/No
@@ -337,7 +340,7 @@ citi_cb %>% ggplot(aes(x=hour,fill=factor(weekday))) +
   ggtitle(expression(atop("Hourly Distribution of Rides")))
 ```
 
-## Most and least used Start and End Stations
+### Most and least used Start and End Stations
 
 An important factor for Lyft - the provider of Citi Bike - could be to track the most and least used stations. Stations that are used the most could provide the opportunity to increase the number of bikes and docking stations, and the stations where neither many customers start nor finish their ride could be relocated.
 
@@ -449,7 +452,7 @@ grid.arrange(top10_map, least10_map, ncol=2)
 
 The two maps show that the stations in Manhattan close to the Broadway are used the most. The stations in Brooklyn, on the other hand, are utilised very rarely. It is particularly important to mention here that this is based on a small sample. The analysis should be repeated with a larger number of data and over several periods of time before deciding on increasing the number of docks or relocating bike stations.
 
-## Identifiying the Popularity of different Areas in New York City
+### Identifiying the Popularity of different Areas in New York City
 
 The map shows by density how strongly the concentration of started bike rentals is distributed across the city. The denser the colour, the higher the concentration of started rides. 
 
@@ -548,6 +551,22 @@ cor_tripduration_precipitation <- round(cor(x=citi_cb$PRCP,
 print(paste0("Interpretation: For every mm of precipitation, the time a customer rents a bike changes by ", cor_tripduration_precipitation, " seconds."))
 
 ```
+
+```{r}
+trip_dur_filter <- citi_cb %>%
+  filter(tripduration < 10000)
+
+# How strong is the effect of precipitation on the trip duration?
+ggplot(trip_dur_filter, aes(x=PRCP, y=tripduration)) +
+  geom_point(color='#2980B9') + 
+  geom_smooth(method=lm, se=FALSE, fullrange=TRUE, color='#2C3E50') +
+  ggtitle(label="Effect of Precipitation on Trip Duration") +
+  ggeasy::easy_center_title() +
+  xlab("Precipitation (in mm)") +
+  ylab("Trip duration (in seconds)")
+
+```
+
 
 ### Influence of temperature on tripduration (in seconds)
 
