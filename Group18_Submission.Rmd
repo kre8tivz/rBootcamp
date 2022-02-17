@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 
 # Introduction
 
-Noel Rinke and Yanik Baumann are two students at the Lucerne University of Applied Sciences and Arts studying for a Master's degree in Applied Information and Data Science. Our assignment represents a complete data analysis where we use a wide variety of R functionalities. For this analysis, we use data from Citi Bike New York. 
+Noel Rinke and Yanik Baumann are students at the Lucerne University of Applied Sciences and Arts studying for a Master's degree in Applied Information and Data Science. Our assignment represents a complete data analysis where we use a wide variety of R functionalities. For this analysis, we use data from Citi Bike New York. 
 
 ## Background Information on New York City's Bike-Sharing Scheme
 
@@ -42,7 +42,7 @@ In order to obtain the intended insights, the analysis required two different da
 
 The data with records on the bicycle rides was obtained from Citi Bike [@CitiBikeNYC22] which provides all data sets since the service began operating in 2013. To represent each season, four different data sets were downloaded for January, April, July, and December, and an equal sample size was drawn from each month in the data preparation section. In addition, it is important to note that the COVID-19 pandemic was thought to be a potential confounding factor, so we specifically chose to use data from 2019, which predated the pandemic.
 
-The second data set used stems from the National Oceanic and Atmospheric Administration [@NOAA22] which is part of the U.S. Department of Commerce. The dataset includes weather data measured at the weather station with the number GHCND:USW00094728 which corresponds to New York City's Central Park. Important to note is that the weather data provided does not include measurements per hour, but per day.
+The second data set used stems from the National Oceanic and Atmospheric Administration [@NOAA22] which is part of the U.S. Department of Commerce. The data set includes weather data measured at the weather station with the number GHCND:USW00094728 which corresponds to New York City's Central Park. Important to note is that the weather data provided does not include measurements per hour, but per day.
 
 
 # Installation of Packages
@@ -106,7 +106,7 @@ citibike_oct19_sample <- sample_n(citibike_oct19, size=1000)
 
 ## Merge of the Datasets and Creation of derived Variables
 
-The following chunks of code show how the data sets were joined together, how additionally required variables were created and the dataset cleaned by removing irrelevant variables.
+The following chunks of code show how the data sets were joined together, how additionally required variables were created and the data set cleaned by removing irrelevant variables.
 
 | **Created additional variables**                         | **Removed variables**                                    |
 |:---------------------------------------------------------|:---------------------------------------------------------|
@@ -219,10 +219,14 @@ citi_cb$tripdur_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
                        ifelse(citi_cb$tripduration >900 & 
                               citi_cb$tripduration <=1800, '15 to 30 min',
                        ifelse(citi_cb$tripduration >1800 & 
-                              citi_cb$tripduration <=3600, '30 to 60 min', 'over 120 min'))))
+                              citi_cb$tripduration <=3600, '30 to 60 min',
+                       ifelse(citi_cb$tripduration >3600 & 
+                              citi_cb$tripduration <=14400, '1 to 4 h',
+                       ifelse(citi_cb$tripduration >14400 & 
+                              citi_cb$tripduration <=43200, '4 to 12 h', 'over 12 h'))))))
 
 # To make sure that the categories are in ascending order
-citi_cb$tripdur_cat <- factor(citi_cb$tripdur_cat, levels = c("0 to 5 min", "5 to 15 min", "15 to 30 min", "30 to 60 min", "over 120 min"))
+citi_cb$tripdur_cat <- factor(citi_cb$tripdur_cat, levels = c("0 to 5 min", "5 to 15 min", "15 to 30 min", "30 to 60 min", "1 to 4 h", "4 to 12 h", "over 12 h"))
 ```
 
 
@@ -231,7 +235,7 @@ citi_cb$tripdur_cat <- factor(citi_cb$tripdur_cat, levels = c("0 to 5 min", "5 t
 ## Data Inspection
 
 The first and the last few entries of the data have been checked to make sure the data is valid and complete.
-Also it is nice to get an overview of the different variables of the dataset.
+Also it is helpful to get an overview of the different variables of the data set.
 
 ```{r, results='asis'}
 # Alternative to summary to get an overview of the data frame
@@ -272,24 +276,37 @@ boxplot(citi_cb$tripduration,
 #   geom_boxplot()
 ```
 
-The boxplot reveals that the variable *tripduration* contains outliers. There are for example values above 50'000 seconds which corresponds to approximately 15 hours. The fact that bicycles are rented for such long time durations can be considered as interesting information, although it needs to be noted that the pricing model is rather not designed for bike rentals for several hours, not to mention days. Citi Bike provides for instance an *annual membership* as well as a *day pass*. Both provide unlimited limited rides for the corresponding pass lengths. However, if the bike is not returned to a dock within 30 minutes, extra fees apply (extra $4 for each additional 15 minutes - as of 2022). Hence, the purpose of the service is to rent a bike multiple times per day but for less than 30 minutes and if needed by a customer for a longer distance for a few hours.
+The boxplot reveals that the variable *tripduration* contains outliers. There are for example values above 50'000 seconds which corresponds to approximately 15 hours. The fact that bicycles are rented for such long time durations can be considered as interesting information, although it needs to be noted that the pricing model is rather not designed for bike rentals for several hours, not to mention days. Citi Bike provides for instance an *annual membership* as well as a *day pass*. Both provide unlimited limited rides for the corresponding pass lengths. However, if the bike is not returned to a dock within 30 minutes, extra fees apply (extra $4 for each additional 15 minutes - as of 2022). Hence, the purpose of the service is to rent a bike rather multiple times per day but for not that much longer than 30 minutes and if needed by a customer for a longer distance for a few hours.
 
 Before deciding on a threshold for removing outliers, we want to check how many bikes were rented for more than half and hour as well as one, two and five hours.
 
 
-```{r, fig.height=3.5}
+```{r, fig.height=4}
+tripdur_cat_count <- citi_cb %>%
+  group_by(tripdur_cat) %>%
+  summarise(counts = n())
+
 # Histogramm trip duration categories
-ggplot(data.frame(citi_cb$tripdur_cat), aes(x=citi_cb$tripdur_cat)) +
-  geom_bar(fill='#2980B9') +
-  theme(legend.position="none",axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) +
-  theme_fivethirtyeight()+
+ggplot(tripdur_cat_count, aes(x=tripdur_cat, y=counts)) +
+  geom_bar(fill = "#0073C2FF",
+           stat = "identity") +
+  geom_text(aes(label = counts),
+           vjust = -0.3) + # Label above bar
+  theme(legend.position="none",
+        axis.text.y=element_blank(),
+        plot.title=element_text(hjust=.5)) +
+  theme_fivethirtyeight() +
   xlab("Trip Duration Category") +
   ylab("Number of rides")
+
+
 ```
+
+With the condition that the outliers are to be examined more closely, a threshold value of 12 hours is provisionally defined. The values above this are excluded from the analysis until a more detailed investigation is carried out.
 
 ```{r}
 # Remove outliers in the variable trip duration
-# citi_cb <- subset(citi_cb, tripduration < 43200)
+citi_cb <- subset(citi_cb, tripduration < 43200)
 ```
 
 
@@ -307,6 +324,8 @@ ggplot(data.frame(citi_cb$daytime), aes(x=citi_cb$daytime)) +
 
 
 ### Hourly Distribution of Rides
+
+We are interested in finding out at what time of day most bikes are rented. The following graph shows the distribution:
 
 ```{r}
 citi_cb %>% ggplot(aes(x=hour,fill=factor(weekday))) +
@@ -541,7 +560,7 @@ summary(model)
 
 # Results
 
-The data analysis carried out has produced many valuable insights. However, it should be mentioned again at this point that the analysis is based on a sample and not on the entirety of the data. For decisions, the entirety or at least a sample containing records of all months since the start of operations in 2013 would be necessary. The data analysis carried out provides the basis for evaluation and could easily be extended with more data sets and the rides and the sample size increased. The findings obtained with the selected sample are as follows:
+The data analysis carried out has produced many valuable insights. However, it should be mentioned again at this point that the analysis is based on a sample and not on the entirety of the data. For decisions, the entirety or at least a sample containing records of all months since the start of operations in 2013 would be necessary. The data analysis carried out provides the basis for evaluation and could easily be extended with more datasets and the rides and the sample size increased. The findings obtained with the selected sample are as follows:
 
 Most rides are done in the afternoon. During the week, peaks are measured between 08:00 - 09:00 and between 17:00 - 18:00. On weekends, the busiest time is between 11:00 - 16:00. Citibike New York is especially popular in the Manhattan borough. 
 Rain has a strong influence on the number of rides per day. When there is no rain, the Citibikes are used much more often. However, the rain has no significant influence on the duration of the trips. 
