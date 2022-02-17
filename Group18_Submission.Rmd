@@ -12,7 +12,7 @@ output:
     latex_engine: xelatex                         # Solves encoding issue
 geometry: "left=2cm,right=2cm,top=2cm,bottom=2cm" # Customize margins
 biblio-style: apa
-bibliography: packages.bib
+bibliography: sources.bib
 ---
 
 ```{r setup, include=FALSE}
