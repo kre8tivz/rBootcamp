@@ -11,9 +11,9 @@ output:
       in_header: "wrap-code.tex"                  # Wraps code (when not fitting on one line)
     latex_engine: xelatex                         # Solves encoding issue
 geometry: "left=2cm,right=2cm,top=2cm,bottom=2cm" # Customize margins
-biblio-style: apa
+csl: ieee.csl
 bibliography: sources.bib
-fig_caption: yes
+fig_caption: yes                                  # Show figure captions
 header-includes:
   - \usepackage{float}
   - \floatplacement{figure}{H}                    # To make sure that figures stay in place
@@ -591,8 +591,6 @@ print(paste0("Interpretation: For every mm of precipitation, the time a customer
 Using the analysis of variance, we would like to see whether the factors of average temperature and rain have an influence on the length of a trip.
 
 ```{r}
-options(scipen = 999) # Deactivate scientific notation
-
 model <- aov(tripduration ~ meantemp + PRCP, data = citi_cb)
 summary(model)
 ```
