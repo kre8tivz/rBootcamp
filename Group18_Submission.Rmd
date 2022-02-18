@@ -38,7 +38,7 @@ The popularity and rise of bike sharing services stems from the benefits such se
 
 ## Aim of the Analysis
 
-This analysis will show when the most trips are made, whether rain has an influence on the number of trips and where the Citibikes are used most. 
+This analysis will show when the most trips are made, whether rain has an influence on the duration of the trips and where the Citibikes are used most. 
 
 
 ## Datasets used
