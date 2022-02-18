@@ -55,6 +55,19 @@ options(scipen = 999)
 citibike_weather_df <- read.csv('citibike_weather_2019.csv')
 View(citibike_weather_df)
 
+ggplot(citi_cb,aes(y=tripduration)) +
+  geom_boxplot() +
+  scale_x_discrete() +
+  theme_light() +
+  theme(plot.margin=unit(c(0,0,-0.04,0), "null")) + # Space between figure and caption
+  coord_flip()
+
+library(skimr)
+skim(citibike_weather_df)
+
+skim(citibike_weather_df) %>%
+  dplyr::select(skim_type, skim_variable, n_missing)
+
 # Check whether the data set was successfully read into a data frame
 class(citibike_weather_df)
 
@@ -226,9 +239,6 @@ leaflet(nyc_neighborhoods) %>%
 
 
 
-
-
-
 leaflet(citibike_weather_df) %>%
   addPolygons(data = nyc_bike_lanes_transformed, # Add bike lanes to map
               color = "#2b8cbe", 
@@ -334,7 +344,11 @@ ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
     alpha = .15,
     bins = 18,
     geom = "polygon") +
-  scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu"))
+  scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu"), guide="none") +
+  ggtitle(label = "Density Map: Start Station") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Longitude") +
+  ylab("Latitude")
 
 
 ###############################################################################################################
@@ -443,3 +457,149 @@ image_crop(image, "992x446")
 knitr::include_graphics('most_popular_stations.png')
 
 
+
+#######################################################################
+# MOST POPULAR START STATIONS
+#######################################################################
+
+# Data frame which ranks all stations by number of rides
+start.station.rank <- data.frame(citibike_weather_df %>%
+                             group_by(start.station.name) %>%
+                             summarize(count=n()) %>%
+                             arrange(desc(count)))
+
+# Add coordinates to data frame
+start.station.rank.coord <- start.station.rank %>%
+  left_join(citibike_weather_df, 
+            by = "start.station.name") %>%
+  select(start.station.name, 
+         count, 
+         start.station.longitude, start.station.latitude)
+
+# What we need for the density map
+start.station.coord <- distinct(start.station.rank.coord)
+
+start.station.rank.t10 <- head(distinct(start.station.rank.coord),10)
+
+# Displaying the top 10 start stations
+start.station.rank.t10 %>%
+  select(start.station.name, count)
+
+
+#########################################
+# The 10 least popular start stations   #
+#########################################
+
+start.station.rank.l10 <- data.frame(citibike_weather_df %>%
+                              group_by(start.station.name) %>% 
+                              summarize(count=n()) %>% 
+                              arrange(count)) %>% 
+                              head(10)
+
+
+
+# The 10 most popular end stations
+citibike_weather_df %>% 
+  group_by(end.station.name) %>% 
+  summarise(count=n())
+
+most_popular_end_stations <- data.frame(citibike_weather_df %>%
+                                          group_by(end.station.name) %>%
+                                          summarize(count=n()) %>%
+                                          arrange(desc(count)))
+
+most_popular_stations <- most_popular %>%
+  left_join(citibike_weather_df, by = "end.station.name") %>%
+  select(end.station.name, count, end.station.longitude, end.station.latitude)
+
+end_station_ranking_top10 <- head(distinct(most_popular_stations),10)
+
+end_station_ranking_top10 %>%
+  select(end.station.name, count)
+
+
+# The 10 least popular end stations
+least_popular <- data.frame(citibike_weather_df %>%
+                              group_by(start.station.name) %>% 
+                              summarize(count=n()) %>% 
+                              arrange(count))
+
+least_popular_stations <- least_popular %>%
+  left_join(citibike_weather_df, by = "start.station.name") %>%
+  select(start.station.name, count, start.station.longitude, start.station.latitude)
+
+station_ranking_least10 <- head(distinct(least_popular_stations),10)
+
+station_ranking_least10 %>%
+  select(start.station.name, count)
+
+
+
+
+##############
+library(data.table)
+
+# Create a dataframe with a column which counts how often a start station was used
+start.station.rank <- data.frame(citibike_weather_df %>%
+                                       group_by(start.station.name) %>%
+                                       summarize(count.start=n()) %>%
+                                       arrange(desc(count.start)))
+
+# Create a dataframe with a column which counts how often an end station was used
+end.station.rank <- data.frame(citibike_weather_df %>%
+                                     group_by(end.station.name) %>%
+                                     summarize(count.end=n()) %>%
+                                     arrange(desc(count.end)))
+
+
+# Combine the start station and end station dataframes
+# So that we have for each station the number of bike rented and the number of bikes returned
+station_usage <- left_join(x=start.station.rank, y=end.station.rank, by=c("start.station.name"="end.station.name"))
+station_usage
+
+
+
+# Check if there are start or end stations which were not used
+sum(is.na(station_usage$count.start))
+sum(is.na(station_usage$count.end))
+
+# Replace all NAs with 0 (Stations which no one used should be shown as zero for the subsequent sum)
+station_usage <- station_usage %>% 
+  mutate_all(~replace(., is.na(.), 0))
+station_usage
+
+# Check if the NA values were successfully replaced
+sum(is.na(station_usage$count.start))
+sum(is.na(station_usage$count.end))
+
+# Create a new column which shows the combined number of bikes rented and returned
+station_usage$station.count.comb <- rowSums(station_usage[, c("count.start", "count.end")]) 
+
+# Order the dataframe by the combined number (from largest to smallest) to get a ranking
+station_usage <- station_usage[order(-station_usage$station.count.comb),]
+
+# Check the 10 most and least used stations
+head(station_usage, 10)
+tail(station_usage, 10)
+# Rename columns for improved readability
+setnames(station_usage, old = c('start.station.name','count.start', 'count.end', 'station.count.comb'), 
+         new = c('Station Name','Bikes rented', 'Bikes returned', 'Total'))
+
+# Create variables with the most and least used stations
+top10 <- head(station_usage, 10)
+least10 <- tail(station_usage, 10)
+
+# Here we add the coordinates to our dataframes
+top_10_coord <- left_join(x=top10, y=citibike_weather_df, by=c("Station Name"="start.station.name"))
+
+top10_coord <- top_10_coord %>% 
+  select('Station Name','start.station.latitude', 'start.station.longitude', 'Bikes rented', 'Bikes returned', 'Total')
+
+distinct(top10_coord)
+
+bbox <- c(left = -74.1, bottom = 40.65, right = -73.875, top = 40.825)
+ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
+  geom_point(data=top10_coord, 
+             aes(x=start.station.longitude, 
+                 y=start.station.latitude),
+             size = 0.1, alpha = 0.05)

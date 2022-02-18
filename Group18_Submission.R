@@ -1,58 +1,8 @@
----
-title: "Group 18 - R Bootcamp"
-author: "Noel Rinke, Yanik Baumann"
-date: \today
-output: 
-  pdf_document:
-    toc: true
-    toc_depth: 3
-    number_sections: true
-    includes:
-      in_header: "wrap-code.tex"                  # Wraps code (when not fitting on one line)
-    latex_engine: xelatex                         # Solves encoding issue
-geometry: "left=2cm,right=2cm,top=2cm,bottom=2cm" # Customize margins
-csl: ieee.csl
-bibliography: sources.bib
-fig_caption: yes                                  # Show figure captions
-header-includes:
-  - \usepackage{float}
-  - \floatplacement{figure}{H}                    # To make sure that figures stay in place
----
-
-```{r setup, include=FALSE}
+## ----setup, include=FALSE---------------------------
 knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
-```
-
-\newpage
-
-# Introduction
-
-Noel Rinke and Yanik Baumann are students at the Lucerne University of Applied Sciences and Arts studying for a Master's degree in Applied Information and Data Science. Our assignment represents a complete data analysis where we use a wide variety of R functionalities. For this analysis, we use data from Citi Bike New York. 
-
-## Background Information on New York City's Bike-Sharing Scheme
-
-New York City's bike-sharing scheme *Citi Bike* began operating in 2013 [@LyftInc22]. With 19'000 bikes and more than 1'000 stations (as of 2022), Citi Bike is an integral part of New York City's transport network and the largest bike-sharing service in the United States [@LyftInc22]. The bike-sharing scheme consists of a fleet of specifically engineered bicycles that are connected to a network of stations which span with Manhattan, Brooklyn, Queens and the Bronx four of New York City's five boroughs - besides Jersey City and Hoboken.
-
-The popularity and rise of bike sharing services stems from the benefits such services provide: While cars contribute to traffic congestion, greenhouse gas emissions and global warming, bicycles offer an environmentally friendlier, healthier, more economical and less space-consuming transportation alternative.
 
 
-## Aim of the Analysis
-
-This analysis will show when the most trips are made, whether rain has an influence on the duration of the trips and where the Citibikes are used most. 
-
-
-## Datasets used
-
-In order to obtain the intended insights, the analysis required two different data sets: Citi Bike ride-sharing data and weather data.
-
-The data with records on the bicycle rides was obtained from Citi Bike [@CitiBikeNYC22] which provides all data sets since the service began operating in 2013. To represent each season, four different data sets were downloaded for January, April, July, and December, and an equal sample size was drawn from each month in the data preparation section. In addition, it is important to note that the COVID-19 pandemic was thought to be a potential confounding factor, so we specifically chose to use data from 2019, which predated the pandemic.
-
-The second data set used stems from the National Oceanic and Atmospheric Administration [@NOAA22] which is part of the U.S. Department of Commerce. The data set includes weather data measured at the weather station with the number GHCND:USW00094728 which corresponds to New York City's Central Park. Important to note is that the weather data provided does not include measurements per hour, but per day.
-
-
-# Installation of Packages
-
-```{r, echo=TRUE, warning=FALSE, message=FALSE}
+## ---- echo=TRUE, warning=FALSE, message=FALSE-------
 
 require(knitr)        # Engine for dynamic report generation
 require(dplyr)        # For data manipulation
@@ -67,22 +17,11 @@ require(scales)       # Internal scaling infrastructure to ggplot2 and its funct
 require(maps)         # For computing the areas of regions in a projected map
 require(ggmap)        # To visualize spatial data & models on top of static maps
 require(RColorBrewer) # Color palette
-require(gridExtra)    # Provides a number of user-level functions to work with "grid" graphics
-require(data.table)   # Widely used for fast aggregation of large datasets
-require(NCmisc)       # Used to get list of used functions
-```
+library(gridExtra)    # Provides a number of user-level functions to work with "grid" graphics
+library(data.table)   # Widely used for fast aggregation of large datasets
 
 
-# Data Preparation
-
-This chapter describes the import and the preparation of the data sets.
-
-
-## Data Import
-
-The ride-sharing data provided by the company Lyft includes many millions of observations since 2013. We decided to reduce the size of the data used to a minimum in order to ensure high performance in the analysis. The months of January, April, July and October for the rides of the year 2019 as well as the weather data for the whole year 2019 are imported below.
-
-```{r citibike-import}
+## ----citibike-import--------------------------------
 citibike_jan19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201901-citibike-tripdata.csv'))
 
@@ -94,80 +33,49 @@ citibike_jul19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 
 citibike_oct19 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\201910-citibike-tripdata.csv'))
-```
 
-```{r weather-import}
+
+## ----weather-import---------------------------------
 nyc_weather_2019 <- read.csv(file = file.path('C:\\Users\\noelr\\switchdrive',
 '\\SharedOstSchweiz\\R Bootcamp\\Data\\New York Weather 2019.csv'))
-```
 
-## Taking Samples
 
-As a further step to narrow down the amount of data to a minimum, we extract a sample of 4000 observations for the analysis with 1000 observations per selected month.
-
-```{r samples}
+## ----samples----------------------------------------
 citibike_jan19_sample <- sample_n(citibike_jan19, size=1000)
 citibike_apr19_sample <- sample_n(citibike_apr19, size=1000)
 citibike_jul19_sample <- sample_n(citibike_jul19, size=1000)
 citibike_oct19_sample <- sample_n(citibike_oct19, size=1000)
-```
 
-## Merge of the Datasets and Creation of derived Variables
 
-The following chunks of code show how the data sets were joined together, how additionally required variables were created and the data set cleaned by removing irrelevant variables.
-
-| **Created additional variables**                         | **Removed variables**                                    |
-|:---------------------------------------------------------|:---------------------------------------------------------|
-| *season*, *DATE*, *meantemp*, *raingrouped*,             | *TSUN*, *TAVG*, *AWND*, *STATION*, *NAME*                |
-| *Snow_yesno*, *weekdays*, *daytime*, *tripdur_cat*       |                                                          |
-
-Table: Overview of created and removed variables
-
-### Creating the Variable Season
-
-```{r new-var-season}
+## ----new-var-season---------------------------------
 citibike_jan19_sample <- cbind(citibike_jan19_sample, season='winter')
 citibike_apr19_sample <- cbind(citibike_apr19_sample, season='spring')
 citibike_jul19_sample <- cbind(citibike_jul19_sample, season='summer')
 citibike_oct19_sample <- cbind(citibike_oct19_sample, season='autumn')
-```
 
-### Merging the Citibike Datasets
 
-```{r}
+## ---------------------------------------------------
 citibike_merged_2019 <- rbind(citibike_jan19_sample, citibike_apr19_sample, 
                               citibike_jul19_sample, citibike_oct19_sample)
-```
 
-### Adding a seperate Date-Column
 
-```{r}
+## ---------------------------------------------------
 citibike_merged_2019$DATE <- substr(citibike_merged_2019$starttime, 1, 10)
-```
 
-### Cleaning the Weather Dataset
 
-Variables that were considered irrelevant for the analysis were deleted.
-
-```{r}
+## ---------------------------------------------------
 nyc_weather_cleaned <- subset(nyc_weather_2019, select = -c(TSUN, TAVG, AWND, STATION, NAME))
-```
 
-### Joining the Datasets
 
-```{r}
+## ---------------------------------------------------
 citi_cb <- left_join(citibike_merged_2019, nyc_weather_cleaned, by='DATE')
-```
 
-### Calculate Average Temperature
 
-```{r}
+## ---------------------------------------------------
 citi_cb$meantemp <- (citi_cb$TMAX + citi_cb$TMIN) / 2
-```
 
-### Grouping Rain Intensity
 
-```{r}
+## ---------------------------------------------------
 citi_cb$raingrouped <- ifelse(citi_cb$PRCP == 0, 'no rain',
                        ifelse(citi_cb$PRCP > 0   & citi_cb$PRCP <=2.0, 'weak',
                        ifelse(citi_cb$PRCP >2.0  & citi_cb$PRCP <=10.0, 'moderate',
@@ -175,17 +83,13 @@ citi_cb$raingrouped <- ifelse(citi_cb$PRCP == 0, 'no rain',
 
 # To make sure that the categories are in the intended order
 citi_cb$raingrouped <- factor(citi_cb$raingrouped, levels = c("no rain", "weak", "moderate", "heavy", "intense"))
-```
 
-### Creating the Variable Snow Yes/No
 
-```{r}
+## ---------------------------------------------------
 citi_cb$Snow_yesno <- ifelse(citi_cb$SNOW > 0, 'yes', 'no')
-```
 
-### Getting the weekdays
 
-```{r}
+## ---------------------------------------------------
 # Weekdays in english
 Sys.setlocale("LC_TIME", "English")
 
@@ -195,11 +99,9 @@ citi_cb$weekday <- weekdays(as.Date(citi_cb$DATE))
 # Setting correct factor order
 citi_cb$weekday <- factor(citi_cb$weekday,levels = c("Monday","Tuesday","Wednesday",
                                                      "Thursday","Friday","Saturday","Sunday"))
-```
 
-### Getting Time and Daytimes
 
-```{r}
+## ---------------------------------------------------
 citi_cb$onlytime <- as.POSIXct(substr(citi_cb$starttime, 12, 19), format="%H:%M:%S")
 
 # Only Hours and Minutes
@@ -219,11 +121,9 @@ citi_cb$daytime  <- ifelse(citi_cb$onlytime <= as.POSIXct("06:00:00",format="%H:
 
 # Setting correct factor order
 citi_cb$daytime <- factor(citi_cb$daytime,levels = c("morning","afternoon","evening","night"))
-```
 
-### Creating Trip Duration Categories
 
-```{r}
+## ---------------------------------------------------
 citi_cb$tripdur_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
                        ifelse(citi_cb$tripduration >300 & 
                               citi_cb$tripduration <=900, '5 to 15 min',
@@ -238,13 +138,9 @@ citi_cb$tripdur_cat <- ifelse(citi_cb$tripduration <=300, '0 to 5 min',
 
 # To make sure that the categories are in ascending order
 citi_cb$tripdur_cat <- factor(citi_cb$tripdur_cat, levels = c("0 to 5 min", "5 to 15 min", "15 to 30 min", "30 to 60 min", "1 to 4 h", "4 to 12 h", "over 12 h"))
-```
 
-## Outlier Detection and Elimination
 
-Outliers can have a large impact on the statistics derived from the dataset, which is why they need to be handled or at least acknowledged. The variable *tripduration* consists of the time (in seconds) a customer rents a bike from Citi Bike until the bike is returned to a station with an empty dock. Therefore, there can be both natural and non-natural outliers. While the non-natural outliers are due to measurement errors (e.g. system failures), natural outliers could be due to customers not returning the rented bike, customers not being able to return the rented bike until the next day, or similar. A boxplot is created to check the distribution of the variable:
-
-```{r, fig.cap = "Boxplot to examine how the variable is distributed and if there are outliers.", fig.height=2.5}
+## ---- fig.cap = "Boxplot to examine how the variable is distributed and if there are outliers.", fig.height=2.5----
 options(scipen = 999) # Deactivate scientific notation
 
 ggplot(citi_cb,aes(y=tripduration)) +
@@ -256,13 +152,9 @@ ggplot(citi_cb,aes(y=tripduration)) +
        y = "Trip Duration (in seconds)") +
   ggeasy::easy_center_title() +
   coord_flip()
-```
 
-The boxplot reveals that the variable *tripduration* contains outliers. There are for example values above 50'000 seconds which corresponds to approximately 15 hours. The fact that bicycles are rented for such long time durations can be considered as interesting information, although it needs to be noted that the pricing model is rather not designed for bike rentals for several hours, not to mention days. Citi Bike provides for instance an *annual membership* as well as a *day pass*. Both provide unlimited limited rides for the corresponding pass lengths. However, if the bike is not returned to a dock within 30 minutes, extra fees apply (extra $4 for each additional 15 minutes - as of 2022). Hence, the purpose of the service is to rent a bike rather multiple times per day but for not that much longer than 30 minutes and if needed by a customer for a longer distance for a few hours.
 
-Before deciding on a threshold for removing outliers, we want to check how many bikes were rented for different time durations.
-
-```{r, fig.cap = "The histogram shows that the trip durations are mostly short-term.", fig.height=4}
+## ---- fig.cap = "The histogram shows that the trip durations are mostly short-term.", fig.height=4----
 tripdur_cat_count <- citi_cb %>%
   group_by(tripdur_cat) %>%
   summarise(counts = n())
@@ -279,36 +171,23 @@ ggplot(tripdur_cat_count, aes(x=tripdur_cat, y=counts)) +
         plot.margin=unit(c(0,0,-0.04,0), "null")) + # Space between figure and caption
   xlab('') + # Remove text on x-axis
   ylab("Number of rides")
-```
 
-With the condition that the outliers are to be examined more closely, a threshold value of 12 hours is provisionally defined. The values above this threshold are excluded from the analysis until a more detailed investigation is carried out.
 
-```{r}
+## ---------------------------------------------------
 citi_cb <- subset(citi_cb, tripduration < 43200)
-```
 
-\newpage
-# Analysis
 
-## Data Inspection
-
-The first and the last few entries of the data have been checked to make sure the data is valid and complete.
-Also it is helpful to get an overview of the different variables of the data set.
-
-```{r}
+## ---------------------------------------------------
 # Alternative to summary to get an overview of the data frame
 str(citi_cb)
-```
 
-```{r}
+
+## ---------------------------------------------------
 # Alternative to summary to get an overview of the data frame
 skim(citi_cb)
-```
 
 
-## Citi Bike Usage
-
-```{r, fig.cap="Most bikes were rented in the afternoon, while comparatively few bikes were rented at night."}
+## ---- fig.cap="Most bikes were rented in the afternoon, while comparatively few bikes were rented at night."----
 ## Histogramm Daytime
 ggplot(data.frame(citi_cb$daytime), aes(x=citi_cb$daytime)) +
   geom_bar(fill='#2980B9') +
@@ -319,27 +198,18 @@ ggplot(data.frame(citi_cb$daytime), aes(x=citi_cb$daytime)) +
   theme(plot.title = element_text(hjust = 0.5)) + 
   xlab("Daytime") +
   ylab("Number of rides")
-```
 
 
-### Hourly Distribution of Rides
-
-We are interested in finding out at what time of day most bikes are rented. The following graph shows the distribution for each day of the week:
-
-```{r, fig.cap="Density plot which shows the hourly distribution of bikes rented."}
+## ---- fig.cap="Density plot which shows the hourly distribution of bikes rented."----
 citi_cb %>% ggplot(aes(x=hour,fill=factor(weekday))) +
   scale_fill_manual(values = c('#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9')) +
   geom_density(alpha=.2) +
   facet_wrap(~weekday,ncol=1) +
   theme(legend.position="none", axis.text.y=element_blank(),plot.title=element_text(hjust=.5)) + 
   ggtitle(expression(atop("Hourly Distribution of Rides")))
-```
 
-### Most and least used Start and End Stations
 
-An important factor for Lyft - the provider of Citi Bike - could be to track the most and least used stations. Stations that are used the most could provide the opportunity to increase the number of bikes and docking stations, and the stations where neither many customers start nor finish their ride could be relocated.
-
-```{r}
+## ---------------------------------------------------
 # Create a dataframe with a column which counts how often a start station was used
 start.station.rank <- data.frame(citi_cb %>%
                                        group_by(start.station.name) %>%
@@ -388,9 +258,9 @@ setnames(station_usage, old = c('start.station.name','count.start', 'count.end',
 # Check the 10 most and least used stations
 kable(head(station_usage, 10), caption="Most used stations")
 kable(tail(station_usage, 10), caption="Least used stations")
-```
 
-```{r, warning=FALSE, message=FALSE, fig.height=3.75, fig.cap = "Maps of New York which show with red dots the most and least used stations."}
+
+## ---- warning=FALSE, message=FALSE, fig.height=3.75, fig.cap = "Maps of New York which show with red dots the most and least used stations."----
 # Create variables with the most and least used stations
 top10 <- head(station_usage, 10)
 least10 <- tail(station_usage, 10)
@@ -445,15 +315,9 @@ least10_map <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
                         c(-0.1,0,-0.3,0.001), "null"))# Margins around graph 
 
 grid.arrange(top10_map, least10_map, ncol=2)          # Show the two maps side by side
-```
 
-The two maps show that the stations in Manhattan close to the Broadway are used the most. The stations in Brooklyn, on the other hand, are utilised very rarely. It is particularly important to mention here that this is based on a small sample. The analysis should be repeated with a larger number of data and over several periods of time before deciding on increasing the number of docks or relocating bike stations.
 
-### Identifiying the Popularity of different Areas in New York City
-
-The map shows by density how strongly the concentration of started bike rentals is distributed across the city. The denser the colour, the higher the concentration of started rides. 
-
-```{r, warning=FALSE, message=FALSE}
+## ---- warning=FALSE, message=FALSE------------------
 # Set longitudes and latitudes to define map tile for New York City
 bbox <- c(left = -74.1, bottom = 40.65, right = -73.875, top = 40.825)
 
@@ -481,23 +345,17 @@ end_station_dens <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")
        plot.margin=unit(c(0,0,-0.04,0), "null")) +    # Space between figure and caption      
   xlab("") +
   ylab("")
-```
 
-```{r, echo=FALSE, include=TRUE,  fig.cap="Map of New York which shows where the most bikes were rented."}
+
+## ---- echo=FALSE, include=TRUE,  fig.cap="Map of New York which shows where the most bikes were rented."----
 start_station_dens
-```
 
-```{r, echo=FALSE, include=TRUE,  fig.cap="Map of New York which shows where the most bikes were returned."}
+
+## ---- echo=FALSE, include=TRUE,  fig.cap="Map of New York which shows where the most bikes were returned."----
 end_station_dens
-```
 
-## Influence of Meteorological Factors
 
-Furthermore, it is of interest how strongly the bike-sharing service is dependent on meteorological factors such as rain and temperatures, respectively how strongly the number of trips is influenced by these factors.
-
-### Influence of Temperature
-
-```{r, fig.cap="Scatter plot to examine the influence of the average daily temperature on the trip durations."}
+## ---- fig.cap="Scatter plot to examine the influence of the average daily temperature on the trip durations."----
 # How strong is the effect of the average daily temperature on the trip duration?
 trip_dur_filter <- citi_cb %>%
   filter(tripduration < 8000)
@@ -512,21 +370,18 @@ ggplot(trip_dur_filter, aes(x=meantemp, y=tripduration)) +
         plot.margin=unit(c(0,0,-0.04,0), "null")) +  
   xlab("Average daily temperature (in Celsius)") +
   ylab("Trip duration (in seconds)")
-```
 
-```{r}
+
+## ---------------------------------------------------
 # Spearman because there are two quantitative variables
 cor_tripdur_meantemp <- round(cor(x=citi_cb$meantemp, y=citi_cb$tripduration, method="spearman"),2)
-```
 
 
-```{r, results='asis', echo=FALSE}
+## ---- results='asis', echo=FALSE--------------------
 print(paste0("Interpretation: For every degree in Celsius, the time a customer rents a bike changes by ", cor_tripdur_meantemp, " seconds. Since we are using samples and not the whole population, the result needs to be interpreted with caution. To investigate the result further, we use inferential statistics in the form of an ANOVA test."))
-```
 
-### Influence of Precipitation
 
-```{r}
+## ---------------------------------------------------
 # How strong is the effect of precipitation on the number of trips?
 # Calculation for each category of precipitation how often it rained
 rain_cat_freq <- citi_cb %>% 
@@ -544,25 +399,13 @@ rain_hist <- ggplot(rain_cat_freq, aes(x = raingrouped, y = counts)) +
         plot.margin=unit(c(0,0,-0.04,0), "null")) + 
   xlab("Rain Category") +
   ylab("Number of Rides")
-```
 
-With the histogram we can see how much and how often it rained during the randomly sampled trips. For the categorization of precipitation, the scale of Meteo Schweiz -@MeteoSchweiz is used:
 
-| **Term**   | **24h sum in mm** | **Explanation**                                                                                                                                 |
-|------------|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| Weak       | 0.1-2             | Some rain, some snowfall, isolated snowflakes, weak rain, weak snowfall, isolated rain showers, isolated snow showers, drizzle, (snow drizzle). |
-| Moderate   | 2-10              | Some precipitation, downpours, some snowfall, some rain showers, some snow showers some showers, some thunderstorms.                            |
-| Heavy      | 10-30             | Heavy precipitation, heavy rainfall, heavy snowfall, heavy rain showers, heavy snow showers, thunderstorms without (intensity term).            |
-| Very heavy | 30-50             | Partly heavy rain, heavy rainfall, heavy snowfall, heavy thunderstorms, heavy thunderstorms.                                                    |
-| Intense    | >50               | Heavy rain, heavy precipitation, heavy snowfall, heavy thunderstorms, heavy thunderstorms.                                                      |
-
-Table: Precipitation scale
-
-```{r, fig.cap="Histogram which shows the distribution by rain category."}
+## ---- fig.cap="Histogram which shows the distribution by rain category."----
 rain_hist
-```
 
-```{r, fig.cap="Scatter plot to examine the influence of precipitation on the trip durations."}
+
+## ---- fig.cap="Scatter plot to examine the influence of precipitation on the trip durations."----
 trip_dur_filter <- citi_cb %>%
   filter(tripduration < 8000)
 
@@ -576,51 +419,18 @@ ggplot(trip_dur_filter, aes(x=PRCP, y=tripduration)) +
         plot.margin=unit(c(0,0,-0.04,0), "null")) + 
   xlab("Precipitation (in mm)") +
   ylab("Trip duration (in seconds)")
-```
 
-```{r}
+
+## ---------------------------------------------------
 cor_tripduration_precipitation <- round(cor(x=citi_cb$PRCP, y=citi_cb$tripduration, 
                                             method="spearman"),2)
-```
 
-```{r, results='asis', echo=FALSE}
+
+## ---- results='asis', echo=FALSE--------------------
 print(paste0("Interpretation: For every mm of precipitation, the time a customer rents a bike changes by ", cor_tripduration_precipitation, " seconds. Since we are using samples and not the whole population, the result needs to be interpreted with caution. To investigate the result further, we use inferential statistics in the form of an ANOVA test."))
-```
 
-### Influence of Temperature on Trip Duration (in seconds)
 
-Using the analysis of variance, we would like to see whether the factors of average temperature and rain have an influence on the length of a trip.
-
-```{r}
+## ---------------------------------------------------
 model <- aov(tripduration ~ meantemp + PRCP, data = citi_cb)
 summary(model)
-```
-
-\newpage
-# Results
-
-The data analysis carried out has produced many valuable insights. However, it should be mentioned again at this point that the analysis is based on a sample and not on the entirety of the data. For decisions, the entirety or at least a sample containing records of all months since the start of operations in 2013 would be necessary. The data analysis carried out provides the basis for evaluation and could easily be extended with more datasets and the rides and the sample size increased. The findings obtained with the selected sample are as follows:
-
-Most rides are done in the afternoon. During the week, peaks are measured between 08:00 - 09:00 and between 17:00 - 18:00. On weekends, the busiest time is between 11:00 - 16:00. Citibike New York is especially popular in the Manhattan borough. 
-Rain has a strong influence on the number of rides per day. When there is no rain, the Citibikes are used much more often. The average temperature has a highly significant influence on the duration of the trips. Also the rain has a weak influence on the duration of the trips.
-
-\newpage
-
-\listoffigures
-
-\listoftables
-
-# Sources
-
-<div id="refs"></div>
-
-\newpage
-
-# Appendix: Functions used
-
-```{r}
-# knitr::purl("Group18_Submission.Rmd")
-# Group18_Submission.R gets created
-list.functions.in.file("Group18_Submission.R")
-```
 
