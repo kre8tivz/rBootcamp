@@ -13,6 +13,10 @@ output:
 geometry: "left=2cm,right=2cm,top=2cm,bottom=2cm" # Customize margins
 biblio-style: apa
 bibliography: sources.bib
+fig_caption: yes
+header-includes:
+  - \usepackage{float}
+  - \floatplacement{figure}{H}                    # To make sure that figures stay in place
 ---
 
 ```{r setup, include=FALSE}
@@ -20,6 +24,7 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 ```
 
 \newpage
+
 # Introduction
 
 Noel Rinke and Yanik Baumann are students at the Lucerne University of Applied Sciences and Arts studying for a Master's degree in Applied Information and Data Science. Our assignment represents a complete data analysis where we use a wide variety of R functionalities. For this analysis, we use data from Citi Bike New York. 
@@ -256,7 +261,7 @@ The boxplot reveals that the variable *tripduration* contains outliers. There ar
 
 Before deciding on a threshold for removing outliers, we want to check how many bikes were rented for different time durations.
 
-```{r, fig.cap = "The histogram shows that the trip durations are mostly short-term."}
+```{r, fig.cap = "The histogram shows that the trip durations are mostly short-term.", fig.height=4}
 tripdur_cat_count <- citi_cb %>%
   group_by(tripdur_cat) %>%
   summarise(counts = n())
@@ -302,7 +307,7 @@ skim(citi_cb)
 
 ## Citi Bike Usage
 
-```{r}
+```{r, fig.cap="Most bikes were rented in the afternoon, while comparatively few bikes were rented at night."}
 ## Histogramm Daytime
 ggplot(data.frame(citi_cb$daytime), aes(x=citi_cb$daytime)) +
   geom_bar(fill='#2980B9') +
@@ -318,9 +323,9 @@ ggplot(data.frame(citi_cb$daytime), aes(x=citi_cb$daytime)) +
 
 ### Hourly Distribution of Rides
 
-We are interested in finding out at what time of day most bikes are rented. The following graph shows the distribution for each day:
+We are interested in finding out at what time of day most bikes are rented. The following graph shows the distribution for each day of the week:
 
-```{r}
+```{r, fig.cap="Density plot which shows the hourly distribution of bikes rented."}
 citi_cb %>% ggplot(aes(x=hour,fill=factor(weekday))) +
   scale_fill_manual(values = c('#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9', '#2980B9')) +
   geom_density(alpha=.2) +
@@ -456,34 +461,34 @@ start_station_dens <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite
   stat_density_2d(
     data = citi_cb,
     aes(x=start.station.longitude, y=start.station.latitude, fill= ..level..),
-    alpha = .15,
-    bins = 18,
-    geom = "polygon") +
+    alpha = .15, bins = 18, geom = "polygon") +
   scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu")) + # library RColorbrewer
   ggtitle(label = "Start Station Density") +
-  theme(plot.title = element_text(hjust = 0.5)) +          # Center the plot title
-  xlab("Longitude") +
-  ylab("Latitude")
+  theme(plot.title = element_text(hjust = 0.5),       # Center the plot title
+       plot.margin=unit(c(0,0,-0.04,0), "null")) +    # Space between figure and caption      
+  xlab("") +
+  ylab("")
 
 # Create density map for end stations
 end_station_dens <- ggmap(get_stamenmap(bbox, zoom = 12, maptype = "toner-lite")) +
   stat_density_2d(data = citi_cb, 
                   aes(x=end.station.longitude, y=end.station.latitude, fill= ..level..),
-                  alpha = .15,
-                  bins = 18,
-                  geom = "polygon") +
+                  alpha = .15, bins = 18, geom = "polygon") +
   scale_fill_gradientn(colors = brewer.pal(7, "YlGnBu")) + # library RColorbrewer
   ggtitle(label = "End Station Density") +
-  theme(plot.title = element_text(hjust = 0.5)) +          # Center the plot title
-  xlab("Longitude") +
-  ylab("Latitude")
+  theme(plot.title = element_text(hjust = 0.5),       # Center the plot title
+       plot.margin=unit(c(0,0,-0.04,0), "null")) +    # Space between figure and caption      
+  xlab("") +
+  ylab("")
 ```
 
-```{r, echo=FALSE, include=TRUE}
+```{r, echo=FALSE, include=TRUE,  fig.cap="Map of New York which shows where the most bikes were rented."}
 start_station_dens
+```
+
+```{r, echo=FALSE, include=TRUE,  fig.cap="Map of New York which shows where the most bikes were returned."}
 end_station_dens
 ```
-
 
 ## Influence of Meteorological Factors
 
@@ -491,9 +496,8 @@ Furthermore, it is of interest how strongly the bike-sharing service is dependen
 
 ### Influence of Temperature
 
-```{r}
+```{r, fig.cap="Scatter plot to examine the influence of the average daily temperature on the trip durations."}
 # How strong is the effect of the average daily temperature on the trip duration?
-
 trip_dur_filter <- citi_cb %>%
   filter(tripduration < 8000)
 
@@ -503,13 +507,17 @@ ggplot(trip_dur_filter, aes(x=meantemp, y=tripduration)) +
   theme_light() +
   ggtitle("Effect of Average daily Temperature on Trip Duration") +
   ggeasy::easy_center_title() +
-  theme(plot.title = element_text(hjust = 0.5)) +  
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin=unit(c(0,0,-0.04,0), "null")) +  
   xlab("Average daily temperature (in Celsius)") +
   ylab("Trip duration (in seconds)")
+```
 
+```{r}
 # Spearman because there are two quantitative variables
 cor_tripdur_meantemp <- round(cor(x=citi_cb$meantemp, y=citi_cb$tripduration, method="spearman"),2)
 ```
+
 
 ```{r, results='asis', echo=FALSE}
 print(paste0("Interpretation: For every degree in Celsius, the time a customer rents a bike changes by ", cor_tripdur_meantemp, " seconds. Since we are using samples and not the whole population, the result needs to be interpreted with caution. To investigate the result further, we use inferential statistics in the form of an ANOVA test."))
@@ -531,7 +539,8 @@ rain_hist <- ggplot(rain_cat_freq, aes(x = raingrouped, y = counts)) +
   theme_light() +
   ggtitle("Histogram with Rain Categories") +
   ggeasy::easy_center_title() +
-  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin=unit(c(0,0,-0.04,0), "null")) + 
   xlab("Rain Category") +
   ylab("Number of Rides")
 ```
@@ -548,11 +557,11 @@ With the histogram we can see how much and how often it rained during the random
 
 Table: Precipitation scale
 
-```{r}
+```{r, fig.cap="Histogram which shows the distribution by rain category."}
 rain_hist
 ```
 
-```{r}
+```{r, fig.cap="Scatter plot to examine the influence of precipitation on the trip durations."}
 trip_dur_filter <- citi_cb %>%
   filter(tripduration < 8000)
 
@@ -562,7 +571,8 @@ ggplot(trip_dur_filter, aes(x=PRCP, y=tripduration)) +
   theme_light() +
   ggtitle("Effect of Precipitation on Trip Duration") +
   ggeasy::easy_center_title() +
-  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.margin=unit(c(0,0,-0.04,0), "null")) + 
   xlab("Precipitation (in mm)") +
   ylab("Trip duration (in seconds)")
 ```
